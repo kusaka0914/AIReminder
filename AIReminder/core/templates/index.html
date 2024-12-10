@@ -1,0 +1,75 @@
+<form id="theme-form" method="POST">
+    <input type="text" name="theme" placeholder="生成する問題のキーワードを入力" required>
+    <button type="submit">問題を生成する</button>
+</form>
+<div id="question-container"></div>
+<div id="options-container"></div>
+<button id="submit-answer" style="display:none;">Submit Answer</button>
+<div id="result-container"></div>
+
+<script>
+    const form = document.getElementById('theme-form');
+    const submitButton = document.getElementById('submit-answer');
+    const resultContainer = document.getElementById('result-container');
+    let correctOption = '';
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const themeInput = form.querySelector('input[name="theme"]');
+        const themeValue = themeInput.value;
+
+        // 空白とその後に1文字以上が含まれているかをチェック
+        // 空白とその後に1文字以上（漢字、ひらがな、カタカナを含む）が含まれているかをチェック
+        if (!/\s[\w\u4e00-\u9faf\u3040-\u309f\u30a0-\u30ff]/.test(themeValue)) {
+            alert('テーマには空白とその後に少なくとも1文字（漢字、ひらがな、カタカナを含む）が含まれている必要があります。');
+            return;
+        }
+        const formData = new FormData(form);
+        const response = await fetch('/generate_question/', {
+            method: 'POST',
+            body: formData,
+        });
+        const data = await response.json();
+        document.getElementById('question-container').innerText = data.question;
+
+        // ここで選択肢を表示する
+        const optionsContainer = document.getElementById('options-container');
+        optionsContainer.innerHTML = ''; // 既存の選択肢をクリア
+        data.options.forEach((option, index) => {
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = `option${index}`;
+            checkbox.name = 'options';
+            checkbox.value = option;
+
+            const label = document.createElement('label');
+            label.htmlFor = `option${index}`;
+            label.innerText = option;
+
+            optionsContainer.appendChild(checkbox);
+            optionsContainer.appendChild(label);
+            optionsContainer.appendChild(document.createElement('br'));
+        });
+
+        correctOption = data.correct_option; // 正解を保存
+        submitButton.style.display = 'block'; // 回答ボタンを表示
+    });
+
+    submitButton.addEventListener('click', async () => {
+        const selectedOptions = Array.from(document.querySelectorAll('input[name="options"]:checked'))
+            .map(checkbox => checkbox.value);
+
+        const formData = new FormData();
+        formData.append('answer', selectedOptions.join(', '));
+        formData.append('correct_option', correctOption);
+
+        const response = await fetch('/answer_question/', {
+            method: 'POST',
+            body: formData,
+        });
+        const data = await response.json();
+
+        resultContainer.innerText = data.explanation;
+    });
+</script>

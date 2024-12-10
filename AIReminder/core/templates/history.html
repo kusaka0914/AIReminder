@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>質問履歴</title>
+</head>
+<body>
+    <h1>質問履歴</h1>
+    <table border="1">
+        <thead>
+            <tr>
+                <th>テーマ</th>
+                <th>質問</th>
+                <th>正解かどうか</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for question in questions %}
+            <tr>
+                <td>{{ question.theme }}</td>
+                <td>{{ question.question_text }}</td>
+                <td>{{ question.is_correct|yesno:"正解,不正解" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3">質問がありません。</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
