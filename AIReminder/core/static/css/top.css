@@ -1,0 +1,107 @@
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.top {
+    width: 100vw;
+    height: 100vh;
+    background-image: url(../images/background_1.png);
+    background-size: cover;
+    background-position: center;
+}
+
+.top-content h2 {
+    color: white;
+    font-size: 2.64vw;
+    font-weight: bold;
+    text-align: center;
+    letter-spacing: 0.2em;
+    margin: 0;
+    margin-bottom: 3.7vw;
+}
+
+.top-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.theme-input {
+    width: 100%;
+    height: 4.62vw;
+    font-size: 1.58vw;
+    padding: 1.04vw;
+    border-radius: 0.87vw;
+    border: none;
+    outline: none;
+}
+
+#theme-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.sending-img {
+    position: absolute;
+    top: 0.6vw;
+    right: 1.19vw;
+    width: 3.33vw;
+    height: 3.33vw;
+}
+
+.sending-img:hover {
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+.theme-input-container {
+    width: 70%;
+    position: relative;
+}
+
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+}
+
+.overlay-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.overlay-content h2 {
+    color: white;
+    font-size: 3.3vw;   
+}
+
+.loading-img {
+    width: 6vw;
+    height: 6vw;
+    animation: spin 2s linear infinite; /* 2秒かけて360度回転を無限に繰り返す */
+}
+
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}

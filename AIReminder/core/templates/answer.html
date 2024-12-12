@@ -1,0 +1,46 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>解答 - 問題 {{ question_number }}/{{ total_questions }}</title>
+    <link rel="stylesheet" href="{% static 'css/question.css' %}">
+</head>
+<body>
+    <div class="question-page">
+        <div class="question-content">
+            <div class="question-header">
+                <h2>テーマ: {{ theme }}</h2>
+                <p class="question-counter">問題 {{ question_number }}/{{ total_questions }}</p>
+            </div>
+            
+            <div class="question-text">
+                {{ question }}
+            </div>
+
+            <div class="answer-result {% if is_correct %}correct{% else %}incorrect{% endif %}">
+                {{ is_correct|yesno:"正解,不正解" }}
+            </div>
+
+            <div class="explanation">
+                <h3>解説</h3>
+                <p>{{ explanation }}</p>
+            </div>
+            {% if debug %}
+            <div class="debug-info" style="margin-top: 2rem; padding: 1rem; background: #f8f9fa;">
+                <p>ユーザーの回答: {{ user_answer }}</p>
+                <p>正解: {{ correct_option }}</p>
+                <p>判定結果: {{ is_correct|yesno:"正解,不正解" }}</p>
+            </div>
+            {% endif %}
+
+            <div class="navigation-buttons">
+                {% if has_next %}
+                <a href="{% url 'question' question_number=next_number %}" class="nav-button next-button">次の問題へ</a>
+                {% else %}
+                <a href="{% url 'index' %}" class="nav-button home-button">トップページへ戻る</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

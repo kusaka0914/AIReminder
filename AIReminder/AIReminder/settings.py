@@ -107,6 +107,14 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# 静的ファイルを集める際の出力先
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# 開発環境での静的ファイルの検索パス
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
