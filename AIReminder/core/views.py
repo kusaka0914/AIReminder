@@ -138,7 +138,7 @@ def generate_question(request):
             response = openai.ChatCompletion.create(
                 model="gpt-4o",
                 messages=[
-                    {"role": "system", "content": "問題の選択肢は (A)選択肢の内容 (B)選択肢の内容 (C)選択肢の内容 (D)選択肢の内容 という形で出力してください。"},
+                    {"role": "system", "content": "問題の選択肢は (A)選択肢の内容 (B)選択肢の内容 (C)選択肢の内容 (D)選択肢の内容 という形で出力してください。問題は問1 問2 問3 問4 問5 問6 問7 問8 問9 問10.という形で出力してください。"},
                     {"role": "user", "content": prompt}
                 ]
             )
