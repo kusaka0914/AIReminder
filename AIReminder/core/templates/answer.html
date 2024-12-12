@@ -9,17 +9,23 @@
     <div class="question-page">
         <div class="question-content">
             <div class="question-header">
-                <h2>テーマ: {{ theme }}</h2>
-                <p class="question-counter">問題 {{ question_number }}/{{ total_questions }}</p>
+                <br>
+                <h3 class="question-counter">解答・解説</h3>
             </div>
             
-            <div class="question-text">
-                {{ question }}
+            <div class="answer-question">
+                {{ question|linebreaks }}
             </div>
 
             <div class="answer-result {% if is_correct %}correct{% else %}incorrect{% endif %}">
-                {{ is_correct|yesno:"正解,不正解" }}
+                <h2>あなたの回答 ({{ user_answer }}) は{{ is_correct|yesno:"正解,不正解" }}です。</h2>
             </div>
+            {% if is_correct %}
+            <img src="{% static 'images/correct.png' %}" alt="正解" class="correct-image">
+            {% else %}
+            <img src="{% static 'images/incorrect.png' %}" alt="不正解" class="incorrect-image">
+            {% endif %}
+
 
             <div class="explanation">
                 <h3>解説</h3>
@@ -35,12 +41,19 @@
 
             <div class="navigation-buttons">
                 {% if has_next %}
-                <a href="{% url 'question' question_number=next_number %}" class="nav-button next-button">次の問題へ</a>
+                <form action="{% url 'question' question_number=next_number %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="answer-button next-button">次の問題へ</button>
+                </form>
                 {% else %}
-                <a href="{% url 'index' %}" class="nav-button home-button">トップページへ戻る</a>
+                <form action="{% url 'generate' %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="answer-button home-button">トップページへ戻る</button>
+                </form>
                 {% endif %}
             </div>
         </div>
+        <img src="{% static 'images/charactor.png' %}" alt="背景画像" class="character-image">
     </div>
 </body>
 </html>

@@ -32,13 +32,24 @@
         </div>
         <img src="{% static 'images/charactor.png' %}" alt="背景画像" class="character-image">
     </div>
-
+    <div class="overlay">
+        <div class="overlay-content">
+            <img src="{% static 'images/loading.png' %}" alt="ローディング中" class="loading-img">
+            <h2>AIが回答を確認中...</h2>
+        </div>
+    </div>
     <script>
         const submitButton = document.getElementById('submit-answer');
         const resultContainer = document.getElementById('result-container');
         const correctOption = '{{ correct_option|escapejs }}';
+        const overlay = document.querySelector('.overlay');
+
+        document.querySelector('form').addEventListener('submit', function() {
+            overlay.style.display = 'flex';
+        });
 
         submitButton.addEventListener('click', async () => {
+            overlay.style.display = 'flex';
             const selectedOptions = Array.from(document.querySelectorAll('input[name="options"]:checked'))
                 .map(checkbox => checkbox.value);
 

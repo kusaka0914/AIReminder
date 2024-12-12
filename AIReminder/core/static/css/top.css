@@ -4,6 +4,19 @@ body {
     overflow: hidden;
 }
 
+.profile-img {
+    position: absolute;
+    top: 1.19vw;
+    right: 1.19vw;
+    width: 5.29vw;
+    height: 5.29vw;
+}
+
+.profile-img:hover {
+    cursor: pointer;
+    opacity: 0.8;
+}
+
 .top {
     width: 100vw;
     height: 100vh;

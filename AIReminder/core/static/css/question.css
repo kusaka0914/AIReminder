@@ -30,7 +30,7 @@ body {
     justify-content: center;
     flex-direction: column;
     align-items: center;
-    margin-bottom: 2rem;
+    margin-bottom: 2vw;
 }
 
 .question-header h2 {
@@ -47,7 +47,7 @@ body {
 }
 
 .question-counter {
-    font-size: 1.2rem; 
+    font-size: 1.2vw; 
 }
 
 .question-text p{
@@ -55,6 +55,8 @@ body {
     margin: 0 10.58vw;
     font-weight: bold;
     margin-bottom: 3.17vw;
+    /* width: 100%;
+    max-width: 52vw; */
 }
 
 .option-item {
@@ -79,11 +81,6 @@ body {
     margin-left: 1.05vw;
 }
 
-.navigation-buttons {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 2rem;
-}
 
 .answer-button {
     background-color: #1C4E87;
@@ -96,7 +93,7 @@ body {
     border: none;
     outline: none;
     margin-left: 10.58vw;
-    margin-top: 3.17vw;
+    margin-top: 1.17vw;
 }
 
 .answer-button:hover {
@@ -107,8 +104,115 @@ body {
 
 .character-image {
     position: absolute;
-    bottom: 0;
+    bottom: -1vw;
     right: 3.96vw;
     width: 30.42vw;
     height: 30.42vw;
+}
+
+.answer-result h2{
+    font-size: 1.5vw;
+    margin-left: 10.58vw;
+    margin-top: 0;
+}
+
+.answer-question p{ 
+    font-size: 1.32vw;
+    margin: 0;
+    margin-left: 10.58vw;
+    font-weight: bold; 
+    margin-bottom: 1.17vw;
+    width: 100%;
+    max-width: 38vw;
+}  
+
+.correct-image {
+    width: 13vw;
+    height: 13vw;
+    position: absolute;
+    top: 10vw;
+    right: 35vw;
+}
+
+.incorrect-image {
+    width: 13vw;
+    height: 13vw;
+    position: absolute;
+    top: 15vw;
+    right: 35vw;
+}
+
+.explanation {
+    margin-left: 10.58vw;
+    margin-top: 1.17vw;
+    margin-bottom: 0;
+}
+
+.explanation h3{
+    font-size: 1.5vw;
+    margin-top: 2.17vw;
+    margin-bottom: 0.2vw;
+}
+
+.explanation p{
+    font-size: 1.4vw;
+    margin: 0;
+    max-width: 50vw;
+    width: 50vw;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-15px);
+    }
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+.character-image {
+    animation: float 3s ease-in-out infinite;
+}
+
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.overlay-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.overlay-content h2 { 
+    color: white;
+    font-size: 3.3vw;   
+}
+
+.loading-img {
+    width: 6vw;
+    height: 6vw;
+    animation: spin 2s linear infinite; /* 2秒かけて360度回転を無限に繰り返す */
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }

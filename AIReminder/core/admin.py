@@ -5,8 +5,8 @@ from .models import Question, UserProgress, CustomUser
 
 @admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
-    list_display = ('theme', 'question_text', 'correct_option', 'created_at')
-    search_fields = ('theme', 'question_text')
+    list_display = ('theme', 'question_text', 'correct_option', 'is_correct')
+    search_fields = ('theme', 'question_text', 'correct_option', 'is_correct')
 
 @admin.register(UserProgress)
 class UserProgressAdmin(admin.ModelAdmin):

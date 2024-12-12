@@ -128,7 +128,7 @@ def is_similar(new_question, past_questions, threshold=0.2):
 def generate_question(request):
     if request.method == 'POST':
         try:
-            theme = request.POST.get('theme', '')
+            theme = request.POST.get('theme', '').replace('　', ' ')
             user = request.user
 
             # ユーザーの過去の質問を取得
@@ -200,6 +200,8 @@ def answer_question(request, question_number):
             以下の形式で出力してください：
             正解:(A/B/C/D)
             解説:解説内容
+            解説は誰でも理解できるようにしてください。
+            解説は180文字以上220文字以下で出力してください。必ずです。
             """
             
             check_response = openai.ChatCompletion.create(
@@ -266,3 +268,6 @@ def answer_question(request, question_number):
             print(f"Error: {str(e)}")  # デバッグ用
             return JsonResponse({"error": str(e)}, status=500)
     return JsonResponse({"error": "Invalid request"}, status=400)
+
+def profile_view(request):
+    return render(request, 'profile.html')
