@@ -13,6 +13,7 @@ SECRET_KEY = 'django-insecure-%&-6gih)r1%%313^o3+gfo$^=6*38123ur_-1z(@3f&84m3!*v
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+
 ALLOWED_HOSTS = []
 
 
@@ -106,6 +107,14 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+
+# 静的ファイルを集める際の出力先
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# 開発環境での静的ファイルの検索パス
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

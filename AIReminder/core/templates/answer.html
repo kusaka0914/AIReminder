@@ -1,0 +1,70 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>解答 - 問題 {{ question_number }}/{{ total_questions }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/question.css' %}">
+</head>
+<body>
+    <div class="question-page">
+        <div class="question-content">
+            <div class="question-header">
+                <br>
+                <h3 class="question-counter">解答・解説</h3>
+            </div>
+            
+            <div class="answer-question">
+                {{ question|linebreaks }}
+            </div>
+
+            <div class="answer-result {% if is_correct %}correct{% else %}incorrect{% endif %}">
+                <h2>あなたの回答 ({{ user_answer }}) は{{ is_correct|yesno:"正解,不正解" }}です。</h2>
+            </div>
+            {% if is_correct %}
+            <img src="{% static 'images/correct.png' %}" alt="正解" class="correct-image">
+            {% else %}
+            <img src="{% static 'images/incorrect.png' %}" alt="不正解" class="incorrect-image">
+            {% endif %}
+
+
+            <div class="explanation">
+                <h3>解説</h3>
+                <p>{{ explanation }}</p>
+            </div>
+            {% if debug %}
+            <div class="debug-info" style="margin-top: 2rem; padding: 1rem; background: #f8f9fa;">
+                <p>ユーザーの回答: {{ user_answer }}</p>
+                <p>正解: {{ correct_option }}</p>
+                <p>判定結果: {{ is_correct|yesno:"正解,不正解" }}</p>
+            </div>
+            {% endif %}
+
+            <div class="navigation-buttons">
+                {% if has_next %}
+                <form action="{% url 'question' keyword=keyword question_number=next_number %}" method="POST">
+                    {% csrf_token %}
+                    {% if is_retry == 'True' %}
+                        <input type="hidden" name="retry" value="true"> <!-- retry情報を追加 -->
+                    {% endif %}
+                    <button type="submit" class="answer-button next-button">次の問題へ</button>
+                </form>
+                {% else %}
+                <form action="{% url 'generate' %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="answer-button home-button">トップページへ戻る</button>
+                </form>
+                {% endif %}
+                {% if is_retry == 'True' %}
+                    <form action="{% url 'keyword_questions' keyword=keyword %}" method="GET">
+                        <button type="submit" class="answer-button profile-button">問題一覧に戻る</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+        <img src="{% static 'images/charactor.png' %}" alt="背景画像" class="character-image">
+    </div>
+</body>
+</html>

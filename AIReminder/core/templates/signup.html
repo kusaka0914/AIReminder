@@ -1,26 +1,33 @@
-<!DOCTYPE html>
-<html lang="ja">
+{% load static %}
 <head>
-    <meta charset="UTF-8">
-    <title>新規登録</title>
+    <link rel="stylesheet" href="{% static 'css/signup.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <h1>新規登録</h1>
-    <form method="POST" action="{% url 'signup' %}">
-        {% csrf_token %}
-        <label for="email">メールアドレス:</label>
-        <input type="email" name="email" id="email" required>
-        <br>
-        <label for="password">パスワード:</label>
-        <input type="password" name="password" id="password" required>
-        <br>
-        <label for="password_confirm">パスワード確認:</label>
-        <input type="password" name="password_confirm" id="password_confirm" required>
-        <br>
-        <button type="submit">登録</button>
-    </form>
-    {% if error_message %}
-    <p style="color: red;">{{ error_message }}</p>
-    {% endif %}
+    <div class="signup-page">
+        <h1>新規登録</h1>
+            <form method="POST" action="{% url 'signup' %}">
+                {% csrf_token %}
+            <label for="email">メールアドレス</label>
+            <br>
+            <input type="email" name="email" id="email" required>
+            <br>
+            <label for="password">パスワード</label>
+            <br>
+            <input type="password" name="password" id="password" required>
+            <br>
+            <label for="password_confirm">パスワード確認</label>
+            <br>
+            <input type="password" name="password_confirm" id="password_confirm" required>
+            <br>
+            <div class="signup-button-container">
+                <button type="submit" class="signup-button">登録</button>
+            </div>
+        </form>
+        {% if error_message %}
+            <p style="color: red;">{{ error_message }}</p>
+        {% endif %}
+    </div>
 </body>
-</html>
