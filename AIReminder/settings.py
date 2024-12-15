@@ -16,6 +16,9 @@ DEBUG = False
 
 ALLOWED_HOSTS = ['generaite-7ef7b582b2c7.herokuapp.com', '127.0.0.1', 'localhost']
 
+CSRF_TRUSTED_ORIGINS = ['https://generaite-7ef7b582b2c7.herokuapp.com']
+
+
 
 
 # Application definition
