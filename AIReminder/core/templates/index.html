@@ -7,6 +7,10 @@
 </head>
 <body>
     <div class="top">
+        <a id="show-history" class="history-button">検索履歴</a>
+        <div id="history-list" class="history-list" style="display: none;">
+
+        </div>
         <a href="{% url 'profile' %}">
             <img src="{% static 'images/profile.png' %}" alt="logo" class="profile-img">
         </a>
@@ -29,6 +33,7 @@
                 </div>
             </form>
         </div>
+        
     </div>
     <div class="overlay">
         <div class="overlay-content">
@@ -39,6 +44,31 @@
 </body>
 
 <script>
+    const historyList = document.getElementById('history-list');
+    document.getElementById('show-history').addEventListener('click', function() {
+        historyList.style.display = historyList.style.display === 'none' ? 'block' : 'none';
+    });
+
+    function setInputValue(keyword) {
+        document.getElementById('theme-input').value = keyword;
+    }
+
+    // サーバーから履歴を取得して表示する
+    fetch('{% url "keyword_history" %}')
+        .then(response => response.json())
+        .then(data => {
+            console.log('Fetched data:', data);  // デバッグ用出力
+            const historyList = document.getElementById('history-list');
+            data.keywords.forEach(keyword => {
+                const item = document.createElement('div');
+                item.textContent = keyword;
+                item.className = 'history-item';
+                item.addEventListener('click', () => setInputValue(keyword));
+                historyList.appendChild(item);
+            });
+        })
+        .catch(error => console.error('Error fetching history:', error));
+
     function validateForm() {
         const input = document.getElementById('theme-input').value;
         const pattern = /.*\s[A-Za-z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF].*/;
@@ -50,6 +80,7 @@
 
         const overlay = document.querySelector('.overlay');
         overlay.style.display = 'flex';
+        historyList.style.display = 'none';
 
         const formData = new FormData(document.getElementById('theme-form'));
         

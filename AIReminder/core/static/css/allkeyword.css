@@ -2,6 +2,7 @@ body {
     font-family: 'Noto Sans', sans-serif;
     margin: 0;
     padding: 0;
+    overflow-x: hidden;
 }
 
 header {
@@ -162,4 +163,11 @@ a:hover {
     margin-left: 2vw;
     padding:0 0.8vw;
     border-radius: 0.32vw;
+}
+
+.clear-button {
+    margin-left: 2vw;
+    font-size: 0.87vw;
+    color: black;
+    text-decoration: underline;
 }

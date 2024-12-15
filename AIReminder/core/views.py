@@ -582,3 +582,10 @@ def explanation_view(request, keyword, question_number):
             print(f"Error: {str(e)}")  # デバッグ用
             return JsonResponse({"error": str(e)}, status=500)
     return JsonResponse({"error": "Invalid request"}, status=400)
+
+@login_required
+def keyword_history(request):
+    user = request.user
+    # テーマのリストを取得
+    keywords = Question.objects.filter(user=user).values_list('theme', flat=True).distinct()
+    return JsonResponse({'keywords': list(keywords)})

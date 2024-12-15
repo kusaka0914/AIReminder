@@ -15,4 +15,5 @@ urlpatterns = [
     path('allquestion/', views.allquestion_view, name='allquestion'),
     path('keywords/<str:keyword>/', views.keyword_questions_view, name='keyword_questions'),
     path('explanation/<str:keyword>/<int:question_number>/', views.explanation_view, name='explanation'),
+    path('keyword_history/', views.keyword_history, name='keyword_history'),
 ]
