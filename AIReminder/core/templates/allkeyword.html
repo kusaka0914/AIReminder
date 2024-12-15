@@ -31,6 +31,7 @@
                     <input type="text" name="search" placeholder="キーワード検索" class="search-input" value="{{ request.GET.search }}">
                     <button type="submit" class="allkeyword-search-button">検索</button>
                 </form>
+                <a href="{% url 'allkeyword' %}" class="clear-button">絞り込み条件クリア</a>
             </div>
             <div class="keyword-container">
                 {% for theme in user_themes %}
