@@ -1,7 +1,7 @@
 body {
     margin: 0;
     padding: 0;
-    font-family: 'Noto Sans JP', sans-serif;
+    font-family: 'Noto Sans', sans-serif;
     overflow: hidden;
 }
 
@@ -97,7 +97,7 @@ body {
 }
 
 .answer-button:hover {
-    opacity: 0.8;
+    opacity: 0.6;
 }
 
 
@@ -215,4 +215,8 @@ body {
     100% {
         transform: rotate(360deg);
     }
+}
+
+.navigation-buttons {
+    display: flex;
 }
