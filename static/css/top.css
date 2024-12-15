@@ -1,0 +1,157 @@
+body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: 'Noto Sans', sans-serif;
+}
+
+.profile-img {
+    position: absolute;
+    top: 1.19vw;
+    right: 1.19vw;
+    width: 5.29vw;
+    height: 5.29vw;
+}
+
+.profile-img:hover {
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+.top {
+    width: 100vw;
+    height: 100vh;
+    background-image: url(../images/background_1.png);
+    background-size: cover;
+    background-position: center;
+}
+
+.top-content h2 {
+    color: white;
+    font-size: 2.64vw;
+    font-weight: bold;
+    text-align: center;
+    letter-spacing: 0.2em;
+    margin: 0;
+    margin-bottom: 3.7vw;
+}
+
+.top-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.theme-input {
+    width: 100%;
+    height: 4.62vw;
+    font-size: 1.58vw;
+    padding: 1.04vw;
+    border-radius: 0.87vw;
+    border: none;
+    outline: none;
+}
+
+#theme-form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.sending-img {
+    position: absolute;
+    top: 0.6vw;
+    right: 1.19vw;
+    width: 3.33vw;
+    height: 3.33vw;
+}
+
+.sending-img:hover {
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+.theme-input-container {
+    width: 70%;
+    position: relative;
+}
+
+.overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+}
+
+.overlay-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.overlay-content h2 {
+    color: white;
+    font-size: 3.3vw;   
+}
+
+.loading-img {
+    width: 6vw;
+    height: 6vw;
+    animation: spin 2s linear infinite; /* 2秒かけて360度回転を無限に繰り返す */
+}
+
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.history-button {
+    position: absolute;
+    top: 3.19vw;
+    right: 8.19vw;
+    font-size: 1.08vw;
+    color: white;
+    text-decoration: underline;
+}
+
+.history-button:hover {
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+.history-list {
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    max-height: 300px;
+    height: 100%;
+    overflow-y: auto;
+    position: absolute;
+    z-index: 1000;
+    width: 200px;
+    top: 5.69vw;
+    right: 8.19vw;
+}
+
+.history-item {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.history-item:hover {
+    background-color: #e0e0e0;
+}
