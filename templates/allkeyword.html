@@ -1,0 +1,45 @@
+
+{% load static %}
+<head>
+    <link rel="stylesheet" href="{% static 'css/allkeyword.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="allkeyword-container">
+        <header>
+            <h1><a href="{% url 'profile' %}" class="profile-header-title">generAIte</a></h1>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'generate' %}">問題生成</a></li>
+                    <li><a href="{% url 'allkeyword' %}">問題一覧</a></li>
+                    <li><a href="{% url 'allquestion' %}">作成した問題集</a></li>
+                </ul>
+                <a href="{% url 'profile' %}"><img src="{% static 'images/character_header.png' %}" alt="プロフィール画像" class="character-img"></a>
+            </nav>
+        </header>
+        <div class="theme-list">
+            <div class="theme-list-flex">
+                <h2>キーワードごとの問題履歴</h2>
+                <form method="GET" action="{% url 'allkeyword' %}" class="search-form">
+                    <select name="sort" class="theme-select" onchange="this.form.submit()">
+                        <option value="alphabetical" {% if request.GET.sort == 'alphabetical' %}selected{% endif %}>辞書順</option>
+                        <option value="count" {% if request.GET.sort == 'count' %}selected{% endif %}>問題数順</option>
+                    </select>
+                    <input type="text" name="search" placeholder="キーワード検索" class="search-input" value="{{ request.GET.search }}">
+                    <button type="submit" class="allkeyword-search-button">検索</button>
+                </form>
+                <a href="{% url 'allkeyword' %}" class="clear-button">絞り込み条件クリア</a>
+            </div>
+            <div class="keyword-container">
+                {% for theme in user_themes %}
+                    <a href="{% url 'keyword_questions' theme.theme %}" class="keyword-item">{{ theme.theme }} {{ theme.count }}問</a>
+                {% empty %}
+                    <p>テーマがありません。</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</body>
