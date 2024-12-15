@@ -40,7 +40,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'AIReminder.urls'
+ROOT_URLCONF = 'AIReminder.AIReminder.urls'
 
 TEMPLATES = [
     {
@@ -58,7 +58,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'AIReminder.wsgi.application'
+WSGI_APPLICATION = 'AIReminder.AIReminder.wsgi.application'
 
 
 # Database
@@ -121,7 +121,7 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-ASGI_APPLICATION = 'AIReminder.asgi.application'
+ASGI_APPLICATION = 'AIReminder.AIReminder.asgi.application'
 
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
