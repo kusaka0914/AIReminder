@@ -1,1 +1,1 @@
-web: gunicorn AIReminder.wsgi:application --log-file -
+web: gunicorn AIReminder.AIReminder.wsgi:application --log-file -
