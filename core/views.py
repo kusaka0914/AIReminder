@@ -106,25 +106,27 @@ def login_view(request):
 #     return render(request, 'question.html', context)
 
 @login_required
-def question_view(request, keyword, question_number):
+def question_view(request, keyword, question_number, question_text):
     # セッションから全ての問題を取得
     is_retry = request.POST.get('retry', 'false') == 'true'
+    question_text = request.POST.get('question_text', '')
+    question_id = request.POST.get('question_id', '')
     if is_retry:
-        all_questions = Question.objects.filter(user=request.user, theme=keyword)
+        all_questions = Question.objects.filter(user=request.user, theme=keyword, question_text=question_text)
     else:
         all_questions = request.session.get('all_questions', [])
     
-    # 問題番号が有効範囲内かチェック
-    if not all_questions or question_number < 1 or question_number > len(all_questions):
-        return redirect('index')  # 'index'にリダイレクト
+    # # 問題番号が有効範囲内かチェック
+    # if not all_questions or question_number < 1 or question_number > len(all_questions):
+    #     return redirect('index')  # 'index'にリダイレクト
 
     # 現在の問題を取得
     if isinstance(all_questions, list):
         current_question = all_questions[question_number - 1]
         question_text = current_question['question_text']  # セッションから取得した場合
-    else:
-        current_question = all_questions[question_number - 1]  # クエリセットから取得した場合
-        question_text = current_question.question_text
+    # else:
+    #     current_question = all_questions[question_number - 1]  # クエリセットから取得した場合
+    #     question_text = current_question.question_text
 
     # デバッグ用出力
     print(f"Question Text: {question_text}")
@@ -144,10 +146,10 @@ def question_view(request, keyword, question_number):
                 'text': option_text
             })
 
-    # 選択肢が4つあるか確認
-    if len(options) != 4:
-        print("選択肢の数が不正です。")
-        return redirect('generate')  # 選択肢が不正な場合はリダイレクト
+    # # 選択肢が4つあるか確認
+    # if len(options) != 4:
+    #     print("選択肢の数が不正です。")
+    #     return redirect('generate')  # 選択肢が不正な場合はリダイレクト
 
     # デバッグ用出力
     print(f"Options: {options}")
@@ -155,8 +157,10 @@ def question_view(request, keyword, question_number):
     context = {
         'question': main_question,
         'options': options,
+        'question_text': question_text,
         'keyword': keyword,
         'question_number': question_number,
+        'question_id': question_id,
         'total_questions': len(all_questions),
         'has_next': question_number < len(all_questions),
         'has_previous': question_number > 1,
@@ -273,40 +277,44 @@ def generate_question(request):
             user.generate_count += len(valid_questions)
             user.save()
             # 最初の問題にリダイレクト
-            return redirect('question', keyword=theme, question_number=1)
+            return redirect('question', keyword=theme, question_number=1, question_text=valid_questions[0])
 
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
     return JsonResponse({"error": "Invalid request"}, status=400)
 
 @csrf_exempt
-def answer_question(request, keyword, question_number):
+def answer_question(request, keyword, question_number, question_text):
     if request.method == 'POST':
         try:
             user_answer = request.POST.get('answer', '')  # 例: "A"
             is_retry = request.POST.get('retry', '')
             question_text = request.POST.get('question_text', '')
+            question_id = request.POST.get('question_id', '')
+            print("idの前")
+            print("question_id", question_id)
+            print("idの後")
             if is_retry == "True":
-                all_questions = Question.objects.filter(user=request.user, theme=keyword)
+                all_questions = Question.objects.filter(user=request.user, theme=keyword, question_text=question_text)
                 print(all_questions)
             else:
                 all_questions = request.session.get('all_questions', [])
             
-            if not all_questions or question_number < 1 or question_number > len(all_questions):
-                return redirect('generate')
+            # if not all_questions or question_number < 1 or question_number > len(all_questions):
+            #     return redirect('generate')
             
             if isinstance(all_questions, list):
                 current_question = all_questions[question_number - 1]
                 question_data = current_question['question_text']  # セッションから取得した場合
                 question_id = current_question['question_id']
-            else:
-                current_question = all_questions[question_number - 1]  # クエリセットから取得した場合
-                question_data = current_question.question_text
-                question_id = current_question.id
+            # else:
+            #     current_question = all_questions[question_number - 1]  # クエリセットから取得した場合
+            #     question_data = current_question.question_text
+            #     question_id = current_question.id
 
             # AIにユーザーの回答を判定させる
             check_prompt = f"""
-            問題: {question_data}
+            問題: {question_text}
             ユーザーの回答: {user_answer}
             
             この回答が正しいかどうかを判定し、解説を提供してください。
@@ -341,13 +349,15 @@ def answer_question(request, keyword, question_number):
             is_correct = user_answer.upper() == correct_option.upper()
 
             context = {
-                'question': question_data,
+                'question': question_text,
+                'question_text': question_text,
                 'keyword': keyword,
                 'question_number': question_number,
                 'total_questions': len(all_questions),
                 'has_next': question_number < len(all_questions),
                 'next_number': question_number + 1,
                 'is_correct': is_correct,
+                'question_id': question_id,
                 'explanation': explanation_text,
                 'correct_option': correct_option,  # AIが選んだ正解を追加
                 'is_retry': is_retry,
@@ -486,6 +496,7 @@ def keyword_questions_view(request, keyword):
     cleaned_questions = []
     for question in questions:
         text = question.question_text
+        question_id = question.id
         question_number = question.question_number
         is_correct_first = question.is_correct_first
         is_correct = question.is_correct
@@ -509,16 +520,18 @@ def keyword_questions_view(request, keyword):
             cleaned_text = cleaned_text.split('？')[0].strip() + '？'
         if '。' in cleaned_text:
             cleaned_text = cleaned_text.split('。')[0].strip() + '？'
-        cleaned_questions.append({'text': cleaned_text, 'question_number': question_number, 'is_correct_first': is_correct_first, 'is_correct': is_correct})
+        cleaned_questions.append({"original_text": text, 'text': cleaned_text, 'question_number': question_number, 'is_correct_first': is_correct_first, 'is_correct': is_correct, 'question_id': question_id})
     
     return render(request, 'keyword_questions.html', {'questions': cleaned_questions, 'keyword': keyword, 'user': request.user})
 
 @login_required
-def explanation_view(request, keyword, question_number):
+def explanation_view(request, keyword, question_number, question_text):
     if request.method == 'POST':
         try:
             user_answer = request.POST.get('answer', '')  # 例: "A"
             is_retry = request.POST.get('retry', '')
+            question_text = request.POST.get('question_text', '')
+            question_id = request.POST.get('question_id', '')
             if is_retry == "true":
                 all_questions = Question.objects.filter(user=request.user, theme=keyword)
             else:
@@ -531,14 +544,14 @@ def explanation_view(request, keyword, question_number):
                 current_question = all_questions[question_number - 1]
                 question_data = current_question['question_text']  # セッションから取得した場合
                 question_id = current_question['question_id']
-            else:
-                current_question = all_questions[question_number - 1]  # クエリセットから取得した場合
-                question_data = current_question.question_text
-                question_id = current_question.id
+            # else:
+                # current_question = all_questions[question_number - 1]  # クエリセットから取得した場合
+                # question_data = current_question.question_text
+                # question_id = current_question.id
 
             # AIにユーザーの回答を判定させる
             check_prompt = f"""
-            問題: {question_data}
+            問題: {question_text}
             ユーザーの回答: {user_answer}
             
             この回答が正しいかどうかを判定し、解説を提供してください。
@@ -573,9 +586,10 @@ def explanation_view(request, keyword, question_number):
             is_correct = user_answer.upper() == correct_option.upper()
 
             context = {
-                'question': question_data,
+                'question': question_text,
                 'keyword': keyword,
                 'question_number': question_number,
+                'question_text': question_text,
                 'total_questions': len(all_questions),
                 'has_next': question_number < len(all_questions),
                 'next_number': question_number + 1,

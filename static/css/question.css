@@ -84,13 +84,13 @@ body {
 
 .answer-button {
     background-color: #1C4E87;
-    width: 17.46vw;
-    height: 5.29vw;
+    width: 9.46vw;
+    height: 3.29vw;
     border-radius: 1.32vw;
     color: white;
-    font-size: 1.85vw;
-    font-weight: bold;
+    font-size: 1.0vw;
     border: none;
+    font-weight: bold;
     outline: none;
     margin-left: 10.58vw;
     margin-top: 1.17vw;
