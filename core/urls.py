@@ -2,6 +2,7 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    path('', views.login_view, name='root'),  # ルートURLをlogin_viewにリダイレクト
     path('generate/', views.index, name='generate'),
     path('generate_question/', views.generate_question, name='generate_question'),
     path('answer_question/', views.answer_question, name='answer_question'),
