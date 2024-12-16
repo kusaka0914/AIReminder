@@ -1,4 +1,5 @@
 from pathlib import Path
+import dj_database_url
 import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -73,7 +74,7 @@ WSGI_APPLICATION = 'AIReminder.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
+        'ENGINE': 'django.db.backends.sqlite3',  # ローカル開発用のデフォルト
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
@@ -137,6 +138,10 @@ AUTHENTICATION_BACKENDS = [
 
 AUTH_USER_MODEL = 'core.customuser'
 
-import dj_database_url
+# import dj_database_url
 
-# DATABASES['default'] = dj_database_url.config(conn_max_age=600, ssl_require=True)
+# DATABASES['default'] = dj_database_url.config(
+#     default=os.getenv('DATABASE_URL'),  # 環境変数DATABASE_URLを使用
+#     conn_max_age=600,
+#     ssl_require=True
+# )
