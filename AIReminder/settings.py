@@ -14,15 +14,14 @@ SECRET_KEY = 'django-insecure-%&-6gih)r1%%313^o3+gfo$^=6*38123ur_-1z(@3f&84m3!*v
 # SECURITY WARNING: don't run with debug turned on in production!
 
 # デプロイするときに変更するところ
-DEBUG = True
+DEBUG = False
+import dj_database_url
 
-# import dj_database_url
-
-# DATABASES['default'] = dj_database_url.config(
-#     default=os.getenv('DATABASE_URL'),  # 環境変数DATABASE_URLを使用
-#     conn_max_age=600,
-#     ssl_require=True
-# )
+DATABASES['default'] = dj_database_url.config(
+    default=os.getenv('DATABASE_URL'),  # 環境変数DATABASE_URLを使用
+    conn_max_age=600,
+    ssl_require=True
+)
 
 
 
