@@ -155,3 +155,7 @@ body {
 .history-item:hover {
     background-color: #e0e0e0;
 }
+
+.generate-button {
+    opacity: 0;
+}

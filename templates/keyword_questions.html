@@ -12,7 +12,7 @@
             <ul>
                 <li><a href="{% url 'generate' %}">問題生成</a></li>
                 <li><a href="{% url 'allkeyword' %}">問題一覧</a></li>
-                <li><a href="{% url 'allquestion' %}">作成した問題集</a></li>
+                <!-- <li><a href="{% url 'allquestion' %}">作成した問題集</a></li> -->
             </ul>
             <a href="{% url 'profile' %}"><img src="{% static 'images/character_header.png' %}" alt="プロフィール画像" class="character-img"></a>
         </nav>
@@ -49,15 +49,17 @@
                         <p class="retry-text">再挑戦後</p>
                         {% if question.is_correct_first == True %}
                             <img src="{% static 'images/circle_small.png' %}" alt="正解" class="circle-img-first">
-                        {% else %}
+                        {% elif question.is_correct_first == False %}
                             <img src="{% static 'images/cross_small.png' %}" alt="不正解" class="cross-img-first">
+                        {% else %}
+                            <p class="correct-text-first">未</p>
                         {% endif %}
                         {% if question.is_correct == True %}
                             <img src="{% static 'images/circle_small.png' %}" alt="正解" class="circle-img-second">
                         {% elif question.is_correct == False %}
                             <img src="{% static 'images/cross_small.png' %}" alt="不正解" class="cross-img-second">
                         {% else %}
-                            <p class="correct-text">未</p>
+                            <p class="correct-text-second">未</p>
                         {% endif %}
                         <form action="{% url 'explanation' keyword=keyword question_number=question.question_number %}" method="POST">
                             {% csrf_token %}

@@ -215,7 +215,16 @@ form {
     opacity: 0.6;
 }
 
-.correct-text {
+.correct-text-first {
+    position: absolute;
+    right: 24.78vw;
+    font-size: 2.09vw;
+    font-weight: bold;
+    letter-spacing: 0.05em;
+    bottom: 2.25vw;
+}
+
+.correct-text-second {
     position: absolute;
     right: 19.78vw;
     font-size: 2.09vw;

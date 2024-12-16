@@ -31,5 +31,7 @@ class CustomUser(AbstractUser):
     correct_count = models.IntegerField(default=0,null=True,blank=True)
     generate_count = models.IntegerField(default=0,null=True,blank=True)
     accuracy = models.FloatField(default=0,null=True,blank=True)
+    not_answered_count = models.IntegerField(default=0,null=True,blank=True)
+
     def __str__(self):
         return self.username

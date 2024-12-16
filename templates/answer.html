@@ -15,12 +15,16 @@
                 <br>
                 <h3 class="question-counter">解答・解説</h3>
             </div>
+            <a href="{% url 'generate' %}"><div class="back-to-top">
+                    トップに戻る
+            </div></a>
             
             <div class="answer-question">
                 {{ question|linebreaks }}
             </div>
 
             <div class="answer-result {% if is_correct %}correct{% else %}incorrect{% endif %}">
+                <h2>正解の選択肢: ({{ correct_option }})</h2>
                 <h2>あなたの回答 ({{ user_answer }}) は{{ is_correct|yesno:"正解,不正解" }}です。</h2>
             </div>
             {% if is_correct %}
@@ -54,7 +58,7 @@
                 {% else %}
                 <form action="{% url 'generate' %}" method="POST">
                     {% csrf_token %}
-                    <button type="submit" class="answer-button home-button">トップページへ戻る</button>
+                    <!-- <button type="submit" class="answer-button home-button">トップページへ戻る</button> -->
                 </form>
                 {% endif %}
                 {% if is_retry == 'True' %}

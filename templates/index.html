@@ -28,8 +28,9 @@
                            required 
                            class="theme-input">
                     <button type="submit" class="generate-button">
-                        <img src="{% static 'images/sending.png' %}" alt="問題を生成する" class="sending-img">
+                        
                     </button>
+                    <img src="{% static 'images/sending.png' %}" alt="問題を生成する" class="sending-img">
                 </div>
             </form>
         </div>
@@ -44,6 +45,11 @@
 </body>
 
 <script>
+    const sendingImg = document.querySelector('.sending-img');
+    const generateButton = document.querySelector('.generate-button');
+    sendingImg.addEventListener('click', function() {
+        generateButton.click();
+    });
     const historyList = document.getElementById('history-list');
     document.getElementById('show-history').addEventListener('click', function() {
         historyList.style.display = historyList.style.display === 'none' ? 'block' : 'none';

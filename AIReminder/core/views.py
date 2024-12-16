@@ -116,8 +116,8 @@ def question_view(request, keyword, question_number):
     
     # 問題番号が有効範囲内かチェック
     if not all_questions or question_number < 1 or question_number > len(all_questions):
-        return redirect('index')  # 'index'にリダイレクト
-
+        return redirect('generate')
+    
     # 現在の問題を取得
     if isinstance(all_questions, list):
         current_question = all_questions[question_number - 1]
@@ -125,7 +125,7 @@ def question_view(request, keyword, question_number):
     else:
         current_question = all_questions[question_number - 1]  # クエリセットから取得した場合
         question_text = current_question.question_text
-
+    
     # デバッグ用出力
     print(f"Question Text: {question_text}")
 
@@ -143,12 +143,7 @@ def question_view(request, keyword, question_number):
                 'letter': option_letter,
                 'text': option_text
             })
-
-    # 選択肢が4つあるか確認
-    if len(options) != 4:
-        print("選択肢の数が不正です。")
-        return redirect('generate')  # 選択肢が不正な場合はリダイレクト
-
+    
     # デバッグ用出力
     print(f"Options: {options}")
 
@@ -185,7 +180,7 @@ def question_history(request):
 
 from difflib import SequenceMatcher
 
-def is_similar(new_question, past_questions, threshold=0.4):
+def is_similar(new_question, past_questions, threshold=0.2):
     for past_question in past_questions:
         similarity = SequenceMatcher(None, new_question, past_question.question_text).ratio()
         if similarity > threshold:
@@ -200,95 +195,63 @@ def generate_question(request):
             user = request.user
 
             # ユーザーの過去の質問を取得
-            past_questions = Question.objects.filter(user=user, theme=theme)[:20]
+            past_questions = Question.objects.filter(user=user, theme=theme)
 
-            # 問題生成の試行回数を制限
-            max_attempts = 5
-            attempt = 0
-            valid_questions = []
+            prompt = f"{theme}というキーワードに関する4択問題を10個作成してください。正解はまだ表示しないでください。"
+            response = openai.ChatCompletion.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "問題の選択肢は (A)選択肢の内容 (B)選択肢の内容 (C)選択肢の内容 (D)選択肢の内容 という形で出力してください。問題は問1 問2 問3 問4 問5 問6 問7 問8 問9 問10.という形で出力してください。"},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            questions_data_all = response.choices[0].message.content.strip() 
+            questions_data = response.choices[0].message.content.strip().split('\n\n')  # 各質問を分割
 
-            while attempt < max_attempts and len(valid_questions) < 10:
-                attempt += 1
-                prompt = f"{theme}というキーワードに関する4択問題を10個作成してください。正解はまだ表示しないでください。"
-                response = openai.ChatCompletion.create(
-                    model="gpt-4o",
-                    messages=[
-                        {"role": "system", "content": "問題の選択肢は (A)選択肢の内容 (B)選択肢の内容 (C)選択肢の内容 (D)選択肢の内容 という形で出力してください。問題は問1 問2 問3 問4 問5 問6 問7 問8 問9 問10.という形で出力してください。"},
-                        {"role": "user", "content": prompt}
-                    ]
-                )
-                questions_data_all = response.choices[0].message.content.strip() 
-                questions_data = questions_data_all.split('\n\n')  # 各質問を分割
-
-                # 検証ロジックを追加
-                for question_data in questions_data:
-                    lines = question_data.split('\n')
-                    non_empty_lines = [line for line in lines if line.strip() != '']
-                    print(non_empty_lines)
-                    if len(non_empty_lines) < 5:
-                        continue  # 空でない行が6以下の場合はスキップ
-
-                    # 問題文の検証
-                    main_question = lines[0].strip()
-                    if not main_question or len(main_question) < 10:
-                        continue  # 問題文が空または5文字未満の場合はスキップ
-
-                    # 類似度のチェック
-                    if is_similar(main_question, past_questions):
-                        continue  # 過去の質問と似ている場合はスキップ
-
-                    valid_questions.append(question_data)
-
-                # 十分な数の有効な問題が生成された場合、ループを終了
-                if len(valid_questions) >= 10:
-                    break
-
-            if len(valid_questions) < 10:
-                return render(request, 'index.html', {
-                    'error_message': "有効な問題を生成できませんでした。別のキーワードでお試しください。"
-                })
-
-            # セッションに全ての問題を保存
-            request.session['all_questions'] = []
-            
-            for i, question_data in enumerate(valid_questions[:10], 1):
-                # Questionモデルに保存
-                question = Question.objects.create(
-                    user=user,
-                    theme=theme,
-                    question_text=question_data,
-                    question_number=i
-                )
+            if not is_similar(questions_data_all, past_questions):
+                # セッションに全ての問題を保存
+                request.session['all_questions'] = []
                 
-                # セッションに問題データを追加
-                request.session['all_questions'].append({
-                    'question_id': question.id,
-                    'question_text': question_data,
-                    'theme': theme,
-                    'question_number': i
-                })
-            
-            request.session.modified = True
+                for i, question_data in enumerate(questions_data, 1):
+                    # Questionモデルに保存
+                    question = Question.objects.create(
+                        user=user,
+                        theme=theme,
+                        question_text=question_data,
+                        question_number=i
+                    )
+                    
+                    # セッションに問題データを追加
+                    request.session['all_questions'].append({
+                        'question_id': question.id,
+                        'question_text': question_data,
+                        'theme': theme,
+                        'question_number': i
+                    })
+                
+                request.session.modified = True
 
-            user.generate_count += len(valid_questions)
-            user.save()
-            # 最初の問題にリダイレクト
-            return redirect('question', keyword=theme, question_number=1)
+                user.generate_count += 10
+                user.save()
+                # 最初の問題にリダイレクト
+                return redirect('question', keyword=theme, question_number=1)
+            else:
+                return render(request, 'index.html', {
+                    'error_message': "このキーワードで生成できる全ての問題を生成しました。他のキーワードでお試しください。"
+                })
 
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
     return JsonResponse({"error": "Invalid request"}, status=400)
 
 @csrf_exempt
-def answer_question(request, keyword, question_number):
+def answer_question(request, keyword, question_number, question_text):
     if request.method == 'POST':
         try:
             user_answer = request.POST.get('answer', '')  # 例: "A"
             is_retry = request.POST.get('retry', '')
-            question_text = request.POST.get('question_text', '')
             if is_retry == "True":
-                all_questions = Question.objects.filter(user=request.user, theme=keyword)
-                print(all_questions)
+                all_questions = Question.objects.filter(user=request.user, theme=keyword,question_text=question_text)
             else:
                 all_questions = request.session.get('all_questions', [])
             
@@ -303,6 +266,11 @@ def answer_question(request, keyword, question_number):
                 current_question = all_questions[question_number - 1]  # クエリセットから取得した場合
                 question_data = current_question.question_text
                 question_id = current_question.id
+
+            # デバッグ用出力
+            print(f"is_retry: {is_retry}")
+            print(f"all_questions: {all_questions}")
+            print(f"Question Data: {question_data}")
 
             # AIにユーザーの回答を判定させる
             check_prompt = f"""
@@ -327,18 +295,27 @@ def answer_question(request, keyword, question_number):
             
             explanation = check_response.choices[0].message.content.strip()
             
+            # デバッグ用出力
+            print(f"AI Response: {explanation}")
+            
             # 正解の抽出方法を修正
             correct_option = None
             explanation_text = ""
             
             for line in explanation.split('\n'):
                 if line.startswith('正解:'):
+                    # 括弧や空白を除去して正解を取得
                     correct_option = line.replace('正解:', '').strip().replace('(', '').replace(')', '')
                 elif line.startswith('解説:'):
                     explanation_text = line.replace('解説:', '').strip()
 
+            # デバッグ用出力
+            print(f"User Answer: {user_answer}")
+            print(f"Correct Option: {correct_option}")
+
             # 正誤を判定（大文字小文字を区別しない）
             is_correct = user_answer.upper() == correct_option.upper()
+            print(f"Is Correct: {is_correct}")
 
             context = {
                 'question': question_data,
@@ -349,7 +326,7 @@ def answer_question(request, keyword, question_number):
                 'next_number': question_number + 1,
                 'is_correct': is_correct,
                 'explanation': explanation_text,
-                'correct_option': correct_option,  # AIが選んだ正解を追加
+                'correct_option': correct_option,
                 'is_retry': is_retry,
                 'user_answer': user_answer,
                 'debug_info': {  # デバッグ情報を追加
@@ -362,20 +339,17 @@ def answer_question(request, keyword, question_number):
 
             # Questionモデルを更新
             question = Question.objects.get(id=question_id)
+            if is_retry:
+                question.is_correct = is_correct
             if question.is_correct_first is None:
                 question.is_correct_first = is_correct
-                first= True
-            else:
-                question.is_correct = is_correct
-                first= False
-            
             question.correct_option = correct_option
             question.explanation = explanation_text
             question.save()
 
             user = request.user
 
-            if first and is_correct:
+            if is_correct:
                 user.correct_count += 1
                 user.save()
 
@@ -386,6 +360,7 @@ def answer_question(request, keyword, question_number):
             return render(request, 'answer.html', context)
 
         except Exception as e:
+            print(f"Error: {str(e)}")  # デバッグ用
             return JsonResponse({"error": str(e)}, status=500)
     return JsonResponse({"error": "Invalid request"}, status=400)
 
@@ -403,18 +378,17 @@ def update_not_answered_count(user):
 
 @login_required
 def profile_view(request):
-    user = request.user  # request.userを使用して現在のユーザーを取得
+    user = request.user
     
     # not_answered_countを更新
-    # update_not_answered_count(user)
+    update_not_answered_count(user)
     
     correct_count = user.correct_count
     generate_count = user.generate_count
     accuracy = round(user.accuracy, 1)  # 正答率を小数点第1位までに丸める
-    not_answered_count = user.not_answered_count
     
     # ユーザーの生成した問題を取得
-    user_questions = Question.objects.filter(user=user)  # request.userを使用
+    user_questions = Question.objects.filter(user=request.user)
     
     # キーワードの集計
     keyword_counts = {}
@@ -433,7 +407,7 @@ def profile_view(request):
         'generate_count': generate_count,
         'accuracy': accuracy,
         'favorite_keyword': favorite_keyword,
-        'not_answered_count': not_answered_count  # 追加
+        'not_answered_count': user.not_answered_count  # 追加
     })
 
 @login_required
@@ -536,6 +510,11 @@ def explanation_view(request, keyword, question_number):
                 question_data = current_question.question_text
                 question_id = current_question.id
 
+            # デバッグ用出力
+            print(f"is_retry: {is_retry}")
+            print(f"all_questions: {all_questions}")
+            print(f"Question Data: {question_data}")
+
             # AIにユーザーの回答を判定させる
             check_prompt = f"""
             問題: {question_data}
@@ -559,18 +538,27 @@ def explanation_view(request, keyword, question_number):
             
             explanation = check_response.choices[0].message.content.strip()
             
+            # デバッグ用出力
+            print(f"AI Response: {explanation}")
+            
             # 正解の抽出方法を修正
             correct_option = None
             explanation_text = ""
             
             for line in explanation.split('\n'):
                 if line.startswith('正解:'):
+                    # 括弧や空白を除去して正解を取得
                     correct_option = line.replace('正解:', '').strip().replace('(', '').replace(')', '')
                 elif line.startswith('解説:'):
                     explanation_text = line.replace('解説:', '').strip()
 
+            # デバッグ用出力
+            print(f"User Answer: {user_answer}")
+            print(f"Correct Option: {correct_option}")
+
             # 正誤を判定（大文字小文字を区別しない）
             is_correct = user_answer.upper() == correct_option.upper()
+            print(f"Is Correct: {is_correct}")
 
             context = {
                 'question': question_data,
@@ -581,7 +569,7 @@ def explanation_view(request, keyword, question_number):
                 'next_number': question_number + 1,
                 'is_correct': is_correct,
                 'explanation': explanation_text,
-                'correct_option': correct_option,  # AIが選んだ正解を追加
+                'correct_option': correct_option,
                 'is_retry': is_retry,
                 'user_answer': user_answer,
                 'debug_info': {  # デバッグ情報を追加
@@ -615,6 +603,7 @@ def explanation_view(request, keyword, question_number):
             return render(request, 'explanation.html', context)
 
         except Exception as e:
+            print(f"Error: {str(e)}")  # デバッグ用
             return JsonResponse({"error": str(e)}, status=500)
     return JsonResponse({"error": "Invalid request"}, status=400)
 

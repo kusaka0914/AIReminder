@@ -110,10 +110,15 @@ body {
     height: 30.42vw;
 }
 
+.answer-result {
+    display: flex;
+    margin-left: 10.58vw;
+}
+
 .answer-result h2{
     font-size: 1.5vw;
-    margin-left: 10.58vw;
     margin-top: 0;
+    margin-right: 1.5vw;
 }
 
 .answer-question p{ 
@@ -150,7 +155,7 @@ body {
 
 .explanation h3{
     font-size: 1.5vw;
-    margin-top: 2.17vw;
+    margin-top: 1.17vw;
     margin-bottom: 0.2vw;
 }
 
@@ -219,4 +224,45 @@ body {
 
 .navigation-buttons {
     display: flex;
+}
+
+.answer-result h2 {
+    font-size: 1.5vw;
+    margin-top: 0;
+    margin-right: 1.5vw;
+    margin-bottom: 0;
+}
+
+.answer-correct {
+    margin-left: 10.58vw;
+    margin-top: 1.17vw;
+    margin-bottom: 0;
+}
+
+.back-to-top {
+    position: absolute;
+    top: 5.67vw;
+    right: 6.58vw;
+    height: 3.29vw;
+    width: 9.46vw;
+    background-color: #1C4E87;
+    border-radius: 1.32vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.back-to-top:hover {
+    opacity: 0.6;
+}
+
+.back-to-top a {
+    color: white;
+    font-size: 1.0vw;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+a {
+    color: white;
 }

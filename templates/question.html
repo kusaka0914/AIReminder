@@ -12,6 +12,9 @@
                 <h2>{{ keyword }}</h2>
                 <h3 class="question-counter">に関する問題</h3>
             </div>
+            <a href="{% url 'generate' %}"><div class="back-to-top">
+                    トップに戻る
+            </div></a>
             <div class="question-text">
                 {{ question|linebreaks }}
             </div>
@@ -37,9 +40,9 @@
                 <button type="submit" class="answer-button">回答する</button>
             </form>
         </div>
-        <div class="debug-info">
+        <!-- <div class="debug-info">
             <p>is_retry: {{ is_retry }}</p>
-        </div>
+        </div> -->
         <img src="{% static 'images/charactor.png' %}" alt="背景画像" class="character-image">
     </div>
     <div class="overlay">
