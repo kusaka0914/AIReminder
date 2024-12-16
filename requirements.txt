@@ -49,3 +49,4 @@ websocket-client==1.8.0
 whitenoise==6.8.2
 wsproto==1.2.0
 yarl==1.18.3
+psycopg2>=2.9,<3.0
