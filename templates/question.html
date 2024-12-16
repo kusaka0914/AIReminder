@@ -18,6 +18,7 @@
             <form id="answer-form" action="{% url 'answer_question' keyword=keyword question_number=question_number %}" method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="retry" value="{{ is_retry }}"> <!-- retry情報を追加 -->
+                <input type="hidden" name="question_text" value="{{ question_text }}">
                 {% for option in options %}
                 <div class="option-item">
                     <input type="radio" 

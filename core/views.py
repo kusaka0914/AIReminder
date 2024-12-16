@@ -115,8 +115,8 @@ def question_view(request, keyword, question_number):
         all_questions = request.session.get('all_questions', [])
     
     # 問題番号が有効範囲内かチェック
-    if not all_questions or question_number < 1 or question_number > len(all_questions):
-        return redirect('generate')
+    # if not all_questions or question_number < 1 or question_number > len(all_questions):
+    #     return redirect('generate')
     
     # 現在の問題を取得
     if isinstance(all_questions, list):
@@ -245,11 +245,12 @@ def generate_question(request):
     return JsonResponse({"error": "Invalid request"}, status=400)
 
 @csrf_exempt
-def answer_question(request, keyword, question_number, question_text):
+def answer_question(request, keyword, question_number):
     if request.method == 'POST':
         try:
             user_answer = request.POST.get('answer', '')  # 例: "A"
             is_retry = request.POST.get('retry', '')
+            question_text = request.POST.get('question_text', '')
             if is_retry == "True":
                 all_questions = Question.objects.filter(user=request.user, theme=keyword,question_text=question_text)
             else:
