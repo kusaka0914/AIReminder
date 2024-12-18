@@ -12,8 +12,10 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
-
+from django.utils import timezone
 def signup_view(request):
+    if request.user.is_authenticated:
+        return redirect('generate')  # 'generate'はURLの名前
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
@@ -106,7 +108,7 @@ def login_view(request):
 #     return render(request, 'question.html', context)
 
 @login_required
-def question_view(request, keyword, question_number, question_text):
+def question_view(request, keyword, question_number):
     # セッションから全ての問題を取得
     is_retry = request.POST.get('retry', 'false') == 'true'
     question_text = request.POST.get('question_text', '')
@@ -128,9 +130,6 @@ def question_view(request, keyword, question_number, question_text):
     #     current_question = all_questions[question_number - 1]  # クエリセットから取得した場合
     #     question_text = current_question.question_text
 
-    # デバッグ用出力
-    print(f"Question Text: {question_text}")
-
     # 問題文と選択肢を分離
     lines = question_text.split('\n')
     main_question = lines[0] if lines else ""  # 最初の行を問題文として扱う
@@ -151,8 +150,6 @@ def question_view(request, keyword, question_number, question_text):
     #     print("選択肢の数が不正です。")
     #     return redirect('generate')  # 選択肢が不正な場合はリダイレクト
 
-    # デバッグ用出力
-    print(f"Options: {options}")
 
     context = {
         'question': main_question,
@@ -179,7 +176,14 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 
 @login_required
 def index(request):
-    return render(request, 'index.html')
+    user = request.user
+    daily_generated_count = user.daily_generated_count
+    is_premium = user.is_premium
+    context = {
+        'daily_generated_count': daily_generated_count,
+        'is_premium': is_premium
+    }
+    return render(request, 'index.html', context)
 
 @login_required
 def question_history(request):
@@ -201,7 +205,29 @@ def generate_question(request):
     if request.method == 'POST':
         try:
             theme = request.POST.get('theme', '').replace('　', ' ')
+            difficulty = request.POST.get('difficulty', 'medium')  # デフォルトは普通
             user = request.user
+            today = timezone.now().date()
+
+            # 難易度に応じたレベル設定
+            level_map = {
+                'basic': '初級レベル',
+                'advanced': '上級レベル',
+                'master': '最上級レベル'
+            }
+            level = level_map.get(difficulty, '上級')
+
+            # プレミアムユーザーでない場合、1日の生成数を制限
+            if not user.is_premium:
+                if user.last_generated_date == today:
+                    if user.daily_generated_count >= 10:
+                        return render(request, 'index.html', {
+                            'error_message': "1日に生成できる問題数の上限に達しました。"
+                        })
+                else:
+                    # 新しい日付の場合、カウントをリセット
+                    user.last_generated_date = today
+                    user.daily_generated_count = 0
 
             # ユーザーの過去の質問を取得
             past_questions = Question.objects.filter(user=user, theme=theme)[:20]
@@ -213,11 +239,12 @@ def generate_question(request):
 
             while attempt < max_attempts and len(valid_questions) < 10:
                 attempt += 1
-                prompt = f"{theme}というキーワードに関する4択問題を10個作成してください。正解はまだ表示しないでください。"
+                prompt = f"{theme}に関する、実用的な4択問題を10個作成してください。作成する問題の難易度は{level}です。しっかりとこのレベルの問題を作成してください。正解はまだ表示しないでください。"
+                print(prompt)
                 response = openai.ChatCompletion.create(
                     model="gpt-4o",
                     messages=[
-                        {"role": "system", "content": "問題の選択肢は (A)選択肢の内容 (B)選択肢の内容 (C)選択肢の内容 (D)選択肢の内容 という形で出力してください。問題は問1 問2 問3 問4 問5 問6 問7 問8 問9 問10.という形で出力してください。"},
+                        {"role": "system", "content": "問題の選択肢は (A)選択肢の内容 (B)選択肢の内容 (C)選択肢の内容 (D)選択肢の内容 という形で出力してください。問題はきちんと1~10の順番で出力してください。"},
                         {"role": "user", "content": prompt}
                     ]
                 )
@@ -226,9 +253,9 @@ def generate_question(request):
 
                 # 検証ロジックを追加
                 for question_data in questions_data:
+                    print(question_data)
                     lines = question_data.split('\n')
                     non_empty_lines = [line for line in lines if line.strip() != '']
-                    print(non_empty_lines)
                     if len(non_empty_lines) < 5:
                         continue  # 空でない行が6以下の場合はスキップ
 
@@ -242,6 +269,9 @@ def generate_question(request):
                         continue  # 過去の質問と似ている場合はスキップ
 
                     valid_questions.append(question_data)
+                    if not user.is_premium:
+                        user.daily_generated_count += 1
+                        user.save()
 
                 # 十分な数の有効な問題が生成された場合、ループを終了
                 if len(valid_questions) >= 10:
@@ -261,7 +291,8 @@ def generate_question(request):
                     user=user,
                     theme=theme,
                     question_text=question_data,
-                    question_number=i
+                    question_number=i,
+                    difficulty=difficulty
                 )
                 
                 # セッションに問題データを追加
@@ -277,14 +308,14 @@ def generate_question(request):
             user.generate_count += len(valid_questions)
             user.save()
             # 最初の問題にリダイレクト
-            return redirect('question', keyword=theme, question_number=1, question_text=valid_questions[0])
+            return redirect('question', keyword=theme, question_number=1)
 
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
     return JsonResponse({"error": "Invalid request"}, status=400)
 
 @csrf_exempt
-def answer_question(request, keyword, question_number, question_text):
+def answer_question(request, keyword, question_number):
     if request.method == 'POST':
         try:
             user_answer = request.POST.get('answer', '')  # 例: "A"
@@ -525,7 +556,7 @@ def keyword_questions_view(request, keyword):
     return render(request, 'keyword_questions.html', {'questions': cleaned_questions, 'keyword': keyword, 'user': request.user})
 
 @login_required
-def explanation_view(request, keyword, question_number, question_text):
+def explanation_view(request, keyword, question_number):
     if request.method == 'POST':
         try:
             user_answer = request.POST.get('answer', '')  # 例: "A"
@@ -638,3 +669,257 @@ def keyword_history(request):
     # テーマのリストを取得
     keywords = Question.objects.filter(user=user).values_list('theme', flat=True).distinct()
     return JsonResponse({'keywords': list(keywords)})
+
+
+
+# your_app/views.py
+import stripe
+from django.conf import settings
+from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
+from .models import Subscription
+from django.contrib.auth.decorators import login_required
+from django.urls import reverse
+from django.contrib.auth import get_user_model
+import logging
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+logger = logging.getLogger(__name__)
+
+User = get_user_model()
+
+@login_required
+def create_checkout_session(request, plan):
+    PLAN_PRICE_MAP = {
+        'basic': 'price_1QWgzYRsfW3rHLql8AgXGsxq',      # 事前にStripeで作成した価格IDを入力
+        'premium': 'price_1QWh03RsfW3rHLqlJwmfjxTP',   # 実際のプレミアムプランの価格IDに置き換えてください
+    }
+
+    price_id = PLAN_PRICE_MAP.get(plan)
+    if not price_id:
+        logger.error(f"Invalid plan requested: {plan}")
+        return HttpResponse("Invalid plan", status=400)
+
+    domain = "http://localhost:8001"  # ローカル開発環境の場合。デプロイ先では適宜変更してください
+
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            customer_email=request.user.email,  # ユーザーのメールアドレスを使用
+            line_items=[{
+                'price': price_id,
+                'quantity': 1,
+            }],
+            mode='subscription',
+            success_url=domain + reverse('success'),
+            cancel_url=domain + reverse('cancel'),
+        )
+        logger.info(f"Checkout session created: {checkout_session.id}")
+    except stripe.error.InvalidRequestError as e:
+        logger.error(f"Stripe InvalidRequestError: {e.user_message}")
+        return HttpResponse(f"Stripe error: {e.user_message}", status=400)
+    except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}")
+        return HttpResponse("An unexpected error occurred.", status=500)
+
+    return redirect(checkout_session.url, code=303)
+
+def success(request):
+    return render(request, 'success.html')
+
+def cancel(request):
+    return render(request, 'cancel.html')
+
+# your_app/views.py
+import stripe
+from django.conf import settings
+from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
+from .models import Subscription
+from django.contrib.auth.decorators import login_required
+from django.urls import reverse
+from django.contrib.auth import get_user_model
+import logging
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+logger = logging.getLogger(__name__)
+
+User = get_user_model()
+
+@csrf_exempt
+def stripe_webhook(request):
+    payload = request.body
+    sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+    event = None
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, settings.STRIPE_WEBHOOK_SECRET
+        )
+        logger.info(f"Received event: {event['type']}")
+    except ValueError:
+        # 無効なペイロード
+        logger.error("Invalid payload")
+        return HttpResponse(status=400)
+    except stripe.error.SignatureVerificationError:
+        # 無効な署名
+        logger.error("Invalid signature")
+        return HttpResponse(status=400)
+
+    # イベントタイプに応じて処理を分岐
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        handle_checkout_session(session)
+
+    elif event['type'] == 'customer.subscription.deleted':
+        subscription = event['data']['object']
+        handle_subscription_deleted(subscription)
+
+    elif event['type'] == 'invoice.payment_succeeded':
+        invoice = event['data']['object']
+        handle_invoice_payment_succeeded(invoice)
+
+    # 他のイベントタイプも必要に応じて処理
+
+    return HttpResponse(status=200)
+
+@login_required
+def create_checkout_session(request, plan):
+    PLAN_PRICE_MAP = {
+        'basic': 'price_1QWgzYRsfW3rHLql8AgXGsxq',      # 事前にStripeで作成した価格IDを入力
+        'premium': 'price_1QWh03RsfW3rHLqlJwmfjxTP',   # 実際のプレミアムプランの価格IDに置き換えてください
+    }
+
+    price_id = PLAN_PRICE_MAP.get(plan)
+    if not price_id:
+        logger.error(f"Invalid plan requested: {plan}")
+        return HttpResponse("Invalid plan", status=400)
+
+    domain = "http://localhost:8001"  # ローカル開発環境の場合。デプロイ先では適宜変更してください
+
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            customer_email=request.user.email,  # ユーザーのメールアドレスを使用
+            line_items=[{
+                'price': price_id,
+                'quantity': 1,
+            }],
+            mode='subscription',
+            success_url=domain + reverse('success'),
+            cancel_url=domain + reverse('cancel'),
+        )
+        logger.info(f"Checkout session created: {checkout_session.id}")
+    except stripe.error.InvalidRequestError as e:
+        logger.error(f"Stripe InvalidRequestError: {e.user_message}")
+        return HttpResponse(f"Stripe error: {e.user_message}", status=400)
+    except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}")
+        return HttpResponse("An unexpected error occurred.", status=500)
+
+    return redirect(checkout_session.url, code=303)
+
+def success(request):
+    return render(request, 'success.html')
+
+def cancel(request):
+    return render(request, 'plans.html')
+
+def handle_checkout_session(session):
+    customer_email = session.get('customer_email')
+    logger.info(f"Handling checkout session for email: {customer_email}")
+
+    if not customer_email:
+        logger.error("No customer_email found in session.")
+        return
+
+    try:
+        user = User.objects.get(email=customer_email)
+        logger.info(f"Found user: {user.username}")
+    except User.DoesNotExist:
+        logger.error(f"User with email {customer_email} does not exist.")
+        return
+
+    subscription_id = session.get('subscription')
+    logger.info(f"Subscription ID: {subscription_id}")
+
+    if not subscription_id:
+        logger.error("No subscription ID found in session.")
+        return
+
+    subscription, created = Subscription.objects.get_or_create(user=user)
+    subscription.stripe_customer_id = session.get('customer')
+    subscription.stripe_customer_id = session.get('customer')
+# ここでUserモデルにもstripe_customer_idを紐付けるフィールドがあるなら更新
+    user.stripe_customer_id = session.get('customer')
+    user.save()
+    subscription.stripe_subscription_id = subscription_id
+    subscription.active = True
+    subscription.plan = determine_plan_from_subscription(subscription_id)
+    subscription.save()
+    logger.info(f"Subscription saved: {subscription}")
+
+    # ユーザーのis_premiumをTrueに設定
+    user.is_premium = True
+    user.save()
+    logger.info(f"User {user.username} is_premium set to True.")
+
+def handle_subscription_deleted(subscription):
+    # サブスクリプションが削除された場合、is_premiumをFalseに設定
+    customer_id = subscription.get('customer')
+    try:
+        user = User.objects.get(subscription__stripe_customer_id=customer_id)
+        logger.info(f"Found user: {user.username} for subscription deletion.")
+    except User.DoesNotExist:
+        logger.error(f"User with customer ID {customer_id} does not exist.")
+        return
+        
+
+    user.is_premium = False
+    user.save()
+    logger.info(f"User {user.username} is_premium set to False.")
+
+def handle_invoice_payment_succeeded(invoice):
+    # 支払い成功時の処理
+    logger.info("Payment succeeded for invoice: " + invoice.get('id'))
+
+    customer_id = invoice.get('customer')
+    if not customer_id:
+        logger.error("No customer ID found in invoice.")
+        return
+
+    try:
+        user = User.objects.get(subscription__stripe_customer_id=customer_id)
+        logger.info(f"Found user: {user.username} for invoice payment.")
+    except User.DoesNotExist:
+        logger.error(f"User with customer ID {customer_id} does not exist.")
+        return
+    
+    user.stripe_customer_id = invoice.get('customer')
+    user.save()
+
+    # 必要に応じて追加の処理を行う
+    user.is_premium = True
+    user.save()
+    logger.info(f"User {user.username} is_premium set to True after payment.")
+    print("変更")
+    print(user.is_premium)
+    print("変更")
+
+def determine_plan_from_subscription(subscription_id):
+    subscription = stripe.Subscription.retrieve(subscription_id)
+    price_id = subscription['items']['data'][0]['price']['id']
+    # 価格IDからプランを判定
+    PRICE_PLAN_MAP = {
+        'price_1QWgzYRsfW3rHLql8AgXGsxq': 'basic',      # ベーシックプランの価格ID
+        'price_1QWh03RsfW3rHLqlJwmfjxTP': 'premium',   # プレミアムプランの価格ID
+    }
+    return PRICE_PLAN_MAP.get(price_id, 'basic')
+
+@login_required
+def plans(request):
+    return render(request, 'plans.html')

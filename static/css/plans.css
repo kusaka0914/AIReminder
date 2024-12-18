@@ -1,0 +1,192 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Noto Sans', sans-serif;
+    background-color: #ECEDF1;
+    overflow: hidden;
+}
+
+header {
+    background-image: url("../images/header.png");
+    background-size: cover;
+    background-position: center;
+    height: 6.61vw;
+    color: white;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+header h1 {
+    font-size: 2.11vw;
+    font-weight: bold;
+    letter-spacing: 0.1em;
+    margin: 0;
+    margin-left: 6.34vw;
+}
+
+header nav ul {
+    list-style: none;
+    display: flex;
+    margin-left: 6.08vw;
+    padding: 0;
+    gap: 3vw;
+}
+
+header nav ul li {
+    display: inline;
+}
+
+header nav ul li a {
+    color: white;
+    text-decoration: none;
+    font-size: 1.58vw;
+    font-weight: bold;
+}
+
+a:hover {
+    opacity: 0.6;
+}
+
+.profile-header-title {
+    text-decoration: none;
+    color: white;
+}
+
+.character-img {
+    width: 7.93vw;
+    height: 6.61vw;
+    position: absolute;
+    right: 2.64vw;
+    top: 0;
+}
+
+.character-img:hover {
+    opacity: 0.6;
+    animation: jump 0.5s ease-in-out infinite;
+}
+
+@keyframes jump {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.plans-title {
+    margin-top: 3.3vw;
+    margin-bottom: 2.11vw;
+    margin-left: 6.34vw;
+}
+
+.plans-title h2 {
+    font-size: 2.11vw;
+    font-weight: bold;
+    letter-spacing: 0.05em;
+}
+
+.plans-item {
+    background-color: white;
+    width: 100vw;
+    max-width: 26.45vw;
+    height: 100vw;
+    max-height: 34.35vw;
+    position: relative;
+}
+
+.plans-flex {
+    display: flex;
+    justify-content: space-between;
+    margin-right: 6.34vw;
+    margin-left: 6.34vw;
+}
+
+.plans-item-header {
+    width: 100%;
+    max-width: 26.45vw;
+    height: 5.29vw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.plans-item-header h2 {
+    margin: 0;
+    color: white;
+    font-size: 1.32vw;
+    letter-spacing: 0.05em;
+}
+
+.plans-free-header {
+    background-color: #1C4E87;
+}
+
+.plans-basic-header {
+    background-color: #87929E;
+}
+
+.plans-premium-header {
+    background-color: #BEA000;
+}
+
+.plans-item-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.plans-item-body p {
+    margin: 0;
+    font-size: 1.58vw;
+    letter-spacing: 0.05em;
+    font-weight: bold;
+    margin-top: 1.58vw;
+}
+
+.plans-item-footer {
+    display: flex;
+    justify-content: center;
+    margin-top: 1.58vw;
+}
+
+.plans-btn {
+    background-color: #1C4E87;
+    height: 4.76vw;
+    width: 20.63vw;
+    color: white;
+    border-radius: 1.98vw;
+    border: none;
+    font-size: 1.32vw;
+    font-weight: bold;
+    letter-spacing: 0.05em;
+}
+
+.plans-btn:hover {
+    opacity: 0.6;
+    cursor: pointer;
+}
+
+.price {
+    font-size: 3.96vw;
+    font-weight: bold;
+}
+
+.price-text {
+    font-size: 5.29vw;
+    margin-left: 0.26vw;
+}
+
+.plans-item-body p:nth-child(2) {
+    margin-top: 0;
+    height: 6.58vw;
+}
+
+.plans-btn {
+    position: absolute;
+    bottom: 1.58vw;
+    left: 50%;
+    transform: translateX(-50%);
+}

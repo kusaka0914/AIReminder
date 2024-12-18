@@ -15,7 +15,7 @@
             <img src="{% static 'images/profile.png' %}" alt="logo" class="profile-img">
         </a>
         <div class="top-content">
-            <h2>2つ以上のキーワードを入力して<br>
+            <h2>キーワードを入力して<br>
                 4択問題を生成できます。
             </h2>
             <form id="theme-form" method="POST" action="{% url 'generate_question' %}" onsubmit="return validateForm()">
@@ -27,24 +27,39 @@
                            placeholder="例: 高校 英語 文法" 
                            required 
                            class="theme-input">
+                    <select name="difficulty" id="difficulty" class="difficulty-select">
+                        <option value="basic">簡単</option>
+                        <option value="advanced">普通</option>
+                        <option value="master">難しい</option>
+                    </select>
                     <button type="submit" class="generate-button">
                         
                     </button>
                     <img src="{% static 'images/sending.png' %}" alt="問題を生成する" class="sending-img">
                 </div>
             </form>
+            <a href="{% url 'plans' %}" class="upgrade-button-link"><div class="upgrade-button">
+                <p>プラン一覧を見る</p>
+            </div></a>
+            </div>
         </div>
-        
+        <!-- <div class="debug-info">
+            <p>isPremium: {{ is_premium }}</p>
+            <p>dailyGeneratedCount: {{ daily_generated_count }}</p>
+        </div> -->
     </div>
     <div class="overlay">
         <div class="overlay-content">
             <h2>問題を生成中...</h2>
+            <p>※問題生成には15秒~25秒程度かかります。</p>
             <img src="{% static 'images/loading.png' %}" alt="問題を生成中..." class="loading-img">
         </div>
     </div>
 </body>
 
 <script>
+    const dailyGeneratedCount = "{{ daily_generated_count }}";
+    const isPremium = "{{ is_premium }}";
     const sendingImg = document.querySelector('.sending-img');
     const generateButton = document.querySelector('.generate-button');
     sendingImg.addEventListener('click', function() {
@@ -57,6 +72,13 @@
 
     function setInputValue(keyword) {
         document.getElementById('theme-input').value = keyword;
+    }
+
+    if (dailyGeneratedCount >= 10 && isPremium == "False") {
+        document.getElementById('theme-input').style.display = 'none';
+        document.querySelector('.sending-img').style.display = 'none';
+        document.querySelector('.top-content h2').textContent = "1日に生成できる問題数の上限に達しました。";
+        document.querySelector('.upgrade-button-link').style.display = 'block';
     }
 
     // サーバーから履歴を取得して表示する
@@ -79,10 +101,10 @@
         const input = document.getElementById('theme-input').value;
         const pattern = /.*\s[A-Za-z0-9\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF].*/;
         
-        if (!pattern.test(input)) {
-            alert('キーワードとキーワードの間に必ず空白を入れてください');
-            return false;
-        }
+        // if (!pattern.test(input)) {
+        //     alert('キーワードとキーワードの間に必ず空白を入れてください');
+        //     return false;
+        // }
 
         const overlay = document.querySelector('.overlay');
         overlay.style.display = 'flex';

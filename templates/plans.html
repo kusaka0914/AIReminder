@@ -1,0 +1,78 @@
+{% load static %}
+<head>
+    <link rel="stylesheet" href="{% static 'css/plans.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="plans-container">
+        <header>
+            <h1><a href="{% url 'profile' %}" class="profile-header-title">generAIte</a></h1>
+            <nav>
+                <ul>
+                    <li><a href="{% url 'generate' %}">問題生成</a></li>
+                    <li><a href="{% url 'allkeyword' %}">問題一覧</a></li>
+                    <!-- <li><a href="{% url 'allquestion' %}">作成した問題集</a></li> -->
+                    <li><a href="{% url 'plans' %}">プラン一覧</a></li>
+                </ul>
+                <a href="{% url 'profile' %}"><img src="{% static 'images/character_header.png' %}" alt="プロフィール画像" class="character-img"></a>
+            </nav>
+        </header>
+        <div class="plans-title">
+            <h2>プラン一覧</h2>
+        </div>
+        <div class="plans-flex">
+            <div class="plans-item">
+                <div class="plans-free-header plans-item-header">
+                    <h2>無料プラン</h2>
+                </div>
+                <div class="plans-free-body plans-item-body">
+                    <p>月額</p>
+                    <p><span class="price">¥</span><span class="price-text">0</span></p>
+                    <p>毎日10問まで生成可能</p>
+                    <p>問題集を5個まで作成可能</p>
+                </div>
+                <div class="plans-free-footer plans-item-footer">
+                    <form action="{% url 'signup' %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="plans-btn">登録</button>
+                    </form>
+                </div>
+            </div>
+            <div class="plans-item">
+                <div class="plans-basic-header plans-item-header">
+                    <h2>100問プラン</h2>
+                </div>
+                <div class="plans-basic-body plans-item-body">
+                    <p>月額</p>
+                    <p><span class="price">¥</span><span class="price-text">300</span></p>
+                    <p>毎日100問まで生成可能</p>
+                    <p>問題集を10個まで作成可能</p>
+                </div>
+                <div class="plans-basic-footer plans-item-footer">
+                    <form action="{% url 'create_checkout_session' 'basic' %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="plans-btn">100問プランに登録</button>
+                    </form>
+                </div>
+            </div>
+            <div class="plans-item">
+                <div class="plans-premium-header plans-item-header">
+                    <h2>使い放題プラン</h2>
+                </div>
+                <div class="plans-premium-body plans-item-body">
+                    <p>月額</p>
+                    <p><span class="price">¥</span><span class="price-text">500</span></p>
+                    <p>無制限に生成可能</p>
+                    <p>問題集を無制限に作成可能</p>
+                    <form action="{% url 'create_checkout_session' 'premium' %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="plans-btn">使い放題プランに登録</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -126,8 +126,6 @@ def question_view(request, keyword, question_number):
         current_question = all_questions[question_number - 1]  # クエリセットから取得した場合
         question_text = current_question.question_text
     
-    # デバッグ用出力
-    print(f"Question Text: {question_text}")
 
     # 問題文と選択肢を分離
     lines = question_text.split('\n')
@@ -143,9 +141,6 @@ def question_view(request, keyword, question_number):
                 'letter': option_letter,
                 'text': option_text
             })
-    
-    # デバッグ用出力
-    print(f"Options: {options}")
 
     context = {
         'question': main_question,
@@ -198,6 +193,7 @@ def generate_question(request):
             past_questions = Question.objects.filter(user=user, theme=theme)
 
             prompt = f"{theme}というキーワードに関する4択問題を10個作成してください。正解はまだ表示しないでください。"
+            print(prompt)
             response = openai.ChatCompletion.create(
                 model="gpt-4o",
                 messages=[

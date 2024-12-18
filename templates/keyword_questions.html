@@ -13,6 +13,7 @@
                 <li><a href="{% url 'generate' %}">問題生成</a></li>
                 <li><a href="{% url 'allkeyword' %}">問題一覧</a></li>
                 <!-- <li><a href="{% url 'allquestion' %}">作成した問題集</a></li> -->
+                <li><a href="{% url 'plans' %}">プラン一覧</a></li>
             </ul>
             <a href="{% url 'profile' %}"><img src="{% static 'images/character_header.png' %}" alt="プロフィール画像" class="character-img"></a>
         </nav>
@@ -61,14 +62,14 @@
                         {% else %}
                             <p class="correct-text-second">未</p>
                         {% endif %}
-                        <form action="{% url 'explanation' keyword=keyword question_number=question.question_number question_text=question.text %}" method="POST">
+                        <form action="{% url 'explanation' keyword=keyword question_number=question.question_number %}" method="POST">
                             {% csrf_token %}
                             <input type="hidden" name="retry" value="true">
                             <input type="hidden" name="question_text" value="{{ question.original_text }}">
                             <input type="hidden" name="question_id" value="{{ question.question_id }}">
                             <button class="explanation-button">解説確認</button>
                         </form>
-                        <form action="{% url 'question' keyword=keyword question_number=question.question_number question_text=question.text %}" method="POST">
+                        <form action="{% url 'question' keyword=keyword question_number=question.question_number %}" method="POST">
                             {% csrf_token %}
                             <input type="hidden" name="question_text" value="{{ question.original_text }}">
                             <input type="hidden" name="retry" value="true"> <!-- retry情報を追加 -->

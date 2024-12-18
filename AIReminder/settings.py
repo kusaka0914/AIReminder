@@ -1,8 +1,26 @@
 from pathlib import Path
 
 import os
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+import environ
+
+env = environ.Env(
+    DEBUG=(bool, False)
+)
+
+# .envファイルの読み込み
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+
+SECRET_KEY = env('SECRET_KEY')
+DEBUG = env('DEBUG')
+
+# Stripe設定
+STRIPE_PUBLIC_KEY = env('STRIPE_PUBLIC_KEY')
+STRIPE_SECRET_KEY = env('STRIPE_SECRET_KEY')
+STRIPE_WEBHOOK_SECRET = env('STRIPE_WEBHOOK_SECRET')
 
 
 # Quick-start development settings - unsuitable for production
@@ -17,7 +35,8 @@ SECRET_KEY = 'django-insecure-%&-6gih)r1%%313^o3+gfo$^=6*38123ur_-1z(@3f&84m3!*v
 
 
 
-ALLOWED_HOSTS = ['generaite-7ef7b582b2c7.herokuapp.com', '127.0.0.1', 'localhost']
+
+ALLOWED_HOSTS = ['generaite-7ef7b582b2c7.herokuapp.com', '127.0.0.1', 'localhost','99f0-222-229-204-173.ngrok-free.app']
 
 CSRF_TRUSTED_ORIGINS = ['https://generaite-7ef7b582b2c7.herokuapp.com']
 
@@ -141,11 +160,11 @@ AUTHENTICATION_BACKENDS = [
 AUTH_USER_MODEL = 'core.customuser'
 
 # デプロイするときに変更するところ
-DEBUG = False
+DEBUG = True
 import dj_database_url
 
-DATABASES['default'] = dj_database_url.config(
-    default=os.getenv('DATABASE_URL'),  # 環境変数DATABASE_URLを使用
-    conn_max_age=600,
-    ssl_require=True
-)
+# DATABASES['default'] = dj_database_url.config(
+#     default=os.getenv('DATABASE_URL'),  # 環境変数DATABASE_URLを使用
+#     conn_max_age=600,
+#     ssl_require=True
+# )

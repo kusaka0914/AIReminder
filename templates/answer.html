@@ -53,7 +53,7 @@
 
             <div class="navigation-buttons">
                 {% if has_next %}
-                <form action="{% url 'question' keyword=keyword question_number=next_number question_text=question_text %}" method="POST">
+                <form action="{% url 'question' keyword=keyword question_number=next_number %}" method="POST">
                     {% csrf_token %}
                     {% if is_retry == 'True' %}
                         <input type="hidden" name="retry" value="true"> <!-- retry情報を追加 -->
