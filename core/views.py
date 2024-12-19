@@ -200,119 +200,215 @@ def is_similar(new_question, past_questions, threshold=0.4):
             return True
     return False
 
+import pytesseract
+from PIL import Image
+from .forms import FileUploadForm
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from PIL import UnidentifiedImageError
+import PyPDF2
 @csrf_exempt
 def generate_question(request):
     if request.method == 'POST':
-        try:
-            theme = request.POST.get('theme', '').replace('　', ' ')
-            difficulty = request.POST.get('difficulty', 'medium')  # デフォルトは普通
-            user = request.user
-            today = timezone.now().date()
+        form = FileUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            if request.FILES.get('file'):
+                print("fileが添付されています。")
+                user = request.user
+                uploaded_file = form.cleaned_data['file']
+                file_type = uploaded_file.content_type
 
-            # 難易度に応じたレベル設定
-            level_map = {
-                'basic': '初級レベル',
-                'advanced': '上級レベル',
-                'master': '最上級レベル'
-            }
-            level = level_map.get(difficulty, '上級')
+                if file_type.startswith('image/'):
+                    # 画像ファイルの処理
+                    image = Image.open(uploaded_file)
+                    width, height = image.size
+                    extracted_text = f"画像のサイズは{width}x{height}です。"
 
-            # プレミアムユーザーでない場合、1日の生成数を制限
-            if not user.is_premium:
-                if user.last_generated_date == today:
-                    if user.daily_generated_count >= 10:
-                        return render(request, 'index.html', {
-                            'error_message': "1日に生成できる問題数の上限に達しました。"
-                        })
-                else:
-                    # 新しい日付の場合、カウントをリセット
-                    user.last_generated_date = today
-                    user.daily_generated_count = 0
+                elif file_type == 'application/pdf':
+                    # PDFファイルの処理
+                    pdf_reader = PyPDF2.PdfReader(uploaded_file)
+                    extracted_text = ""
+                    for page in pdf_reader.pages:
+                        extracted_text += page.extract_text()
 
-            # ユーザーの過去の質問を取得
-            past_questions = Question.objects.filter(user=user, theme=theme)[:20]
+                max_attempts = 5
+                attempt = 0
+                valid_questions = []
+                theme = extracted_text[:10]
 
-            # 問題生成の試行回数を制限
-            max_attempts = 5
-            attempt = 0
-            valid_questions = []
+                while attempt < max_attempts and len(valid_questions) < 10:
+                    attempt += 1
+                # ChatGPT APIで問題を生成
+                    prompt = f"次のテキストを読み、実用的な4択問題を10個作成してください。:{extracted_text}正解はまだ表示しないでください。"
+                    print(prompt)
+                    response = openai.ChatCompletion.create(
+                        model="gpt-4o",
+                        messages=[
+                            {"role": "system", "content": "問題の選択肢は (A)選択肢の内容 (B)選択肢の内容 (C)選択肢の内容 (D)選択肢の内容 という形で出力してください。"},
+                            {"role": "user", "content": prompt}
+                        ]
+                    )
+                    questions_data_all = response.choices[0].message.content.strip() 
+                    questions_data = questions_data_all.split('\n\n')  # 各質問を分割
 
-            while attempt < max_attempts and len(valid_questions) < 10:
-                attempt += 1
-                prompt = f"{theme}に関する、実用的な4択問題を10個作成してください。作成する問題の難易度は{level}です。しっかりとこのレベルの問題を作成してください。正解はまだ表示しないでください。"
-                print(prompt)
-                response = openai.ChatCompletion.create(
-                    model="gpt-4o",
-                    messages=[
-                        {"role": "system", "content": "問題の選択肢は (A)選択肢の内容 (B)選択肢の内容 (C)選択肢の内容 (D)選択肢の内容 という形で出力してください。問題はきちんと1~10の順番で出力してください。"},
-                        {"role": "user", "content": prompt}
-                    ]
-                )
-                questions_data_all = response.choices[0].message.content.strip() 
-                questions_data = questions_data_all.split('\n\n')  # 各質問を分割
+                    for question_data in questions_data:
+                        print(question_data)
+                        lines = question_data.split('\n')
+                        non_empty_lines = [line for line in lines if line.strip() != '']
+                        if len(non_empty_lines) < 5:
+                            continue  # 空でない行が6以下の場合はスキップ
 
-                # 検証ロジックを追加
-                for question_data in questions_data:
-                    print(question_data)
-                    lines = question_data.split('\n')
-                    non_empty_lines = [line for line in lines if line.strip() != '']
-                    if len(non_empty_lines) < 5:
-                        continue  # 空でない行が6以下の場合はスキップ
+                        # 問題文の検証
+                        main_question = lines[0].strip()
+                        if not main_question or len(main_question) < 10:
+                            continue  # 問題文が空または5文字未満の場合はスキップ
 
-                    # 問題文の検証
-                    main_question = lines[0].strip()
-                    if not main_question or len(main_question) < 10:
-                        continue  # 問題文が空または5文字未満の場合はスキップ
+                        valid_questions.append(question_data)
 
-                    # 類似度のチェック
-                    if is_similar(main_question, past_questions):
-                        continue  # 過去の質問と似ている場合はスキップ
+                    # 十分な数の有効な問題が生成された場合、ループを終了
+                    if len(valid_questions) >= 10:
+                        break
 
-                    valid_questions.append(question_data)
-                    if not user.is_premium:
-                        user.daily_generated_count += 1
-                        user.save()
+                if len(valid_questions) < 10:
+                    return render(request, 'index.html', {
+                        'error_message': "有効な問題を生成できませんでした。別のキーワードでお試しください。"
+                    })
 
-                # 十分な数の有効な問題が生成された場合、ループを終了
-                if len(valid_questions) >= 10:
-                    break
-
-            if len(valid_questions) < 10:
-                return render(request, 'index.html', {
-                    'error_message': "有効な問題を生成できませんでした。別のキーワードでお試しください。"
-                })
-
-            # セッションに全ての問題を保存
-            request.session['all_questions'] = []
-            
-            for i, question_data in enumerate(valid_questions[:10], 1):
-                # Questionモデルに保存
-                question = Question.objects.create(
-                    user=user,
-                    theme=theme,
-                    question_text=question_data,
-                    question_number=i,
-                    difficulty=difficulty
-                )
+                request.session['all_questions'] = []
+                for i, question_data in enumerate(valid_questions[:10], 1):
+                    # Questionモデルに保存
+                    question = Question.objects.create(
+                        user=user,
+                        theme=theme,
+                        question_text=question_data,
+                        question_number=i,
+                    )
+                    
+                    # セッションに問題データを追加
+                    request.session['all_questions'].append({
+                        'question_id': question.id,
+                        'question_text': question_data,
+                        'theme': theme,
+                        'question_number': i
+                    })
                 
-                # セッションに問題データを追加
-                request.session['all_questions'].append({
-                    'question_id': question.id,
-                    'question_text': question_data,
-                    'theme': theme,
-                    'question_number': i
-                })
-            
-            request.session.modified = True
+                request.session.modified = True
 
-            user.generate_count += len(valid_questions)
-            user.save()
-            # 最初の問題にリダイレクト
-            return redirect('question', keyword=theme, question_number=1)
+                user.generate_count += 10
+                user.save()
+                # 最初の問題にリダイレクト
+                return redirect('question', keyword=theme, question_number=1)
+        else:
+            try:
+                theme = request.POST.get('theme', '').replace('　', ' ')
+                difficulty = request.POST.get('difficulty', 'medium')  # デフォルトは普通
+                user = request.user
+                today = timezone.now().date()
 
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
-    return JsonResponse({"error": "Invalid request"}, status=400)
+                # 難易度に応じたレベル設定
+                level_map = {
+                    'basic': '初級レベル',
+                    'advanced': '上級レベル',
+                    'master': '最上級レベル'
+                }
+                level = level_map.get(difficulty, '上級')
+
+                # プレミアムユーザーでない場合、1日の生成数を制限
+                if not user.is_premium:
+                    if user.last_generated_date == today:
+                        if user.daily_generated_count >= 10:
+                            return render(request, 'index.html', {
+                                'error_message': "1日に生成できる問題数の上限に達しました。"
+                            })
+                    else:
+                        # 新しい日付の場合、カウントをリセット
+                        user.last_generated_date = today
+                        user.daily_generated_count = 0
+
+                # ユーザーの過去の質問を取得
+                past_questions = Question.objects.filter(user=user, theme=theme)[:20]
+
+                # 問題生成の試行回数を制限
+                max_attempts = 5
+                attempt = 0
+                valid_questions = []
+
+                while attempt < max_attempts and len(valid_questions) < 10:
+                    attempt += 1
+                    prompt = f"{theme}に関する、実用的な4択問題を10個作成してください。作成する問題の難易度は{level}です。しっかりとこのレベルの問題を作成してください。正解はまだ表示しないでください。"
+                    print(prompt)
+                    response = openai.ChatCompletion.create(
+                        model="gpt-4o",
+                        messages=[
+                            {"role": "system", "content": "問題の選択肢は (A)選択肢の内容 (B)選択肢の内容 (C)選択肢の内容 (D)選択肢の内容 という形で出力してください。問題はきちんと1~10の順番で出力してください。"},
+                            {"role": "user", "content": prompt}
+                        ]
+                    )
+                    questions_data_all = response.choices[0].message.content.strip() 
+                    questions_data = questions_data_all.split('\n\n')  # 各質問を分割
+
+                    # 検証ロジックを追加
+                    for question_data in questions_data:
+                        print(question_data)
+                        lines = question_data.split('\n')
+                        non_empty_lines = [line for line in lines if line.strip() != '']
+                        if len(non_empty_lines) < 5:
+                            continue  # 空でない行が6以下の場合はスキップ
+
+                        # 問題文の検証
+                        main_question = lines[0].strip()
+                        if not main_question or len(main_question) < 10:
+                            continue  # 問題文が空または5文字未満の場合はスキップ
+
+                        # 類似度のチェック
+                        if is_similar(main_question, past_questions):
+                            continue  # 過去の質問と似ている場合はスキップ
+
+                        valid_questions.append(question_data)
+                        if not user.is_premium:
+                            user.daily_generated_count += 1
+                            user.save()
+
+                    # 十分な数の有効な問題が生成された場合、ループを終了
+                    if len(valid_questions) >= 10:
+                        break
+
+                if len(valid_questions) < 10:
+                    return render(request, 'index.html', {
+                        'error_message': "有効な問題を生成できませんでした。別のキーワードでお試しください。"
+                    })
+
+                # セッションに全ての問題を保存
+                request.session['all_questions'] = []
+                
+                for i, question_data in enumerate(valid_questions[:10], 1):
+                    # Questionモデルに保存
+                    question = Question.objects.create(
+                        user=user,
+                        theme=theme,
+                        question_text=question_data,
+                        question_number=i,
+                        difficulty=difficulty
+                    )
+                    
+                    # セッションに問題データを追加
+                    request.session['all_questions'].append({
+                        'question_id': question.id,
+                        'question_text': question_data,
+                        'theme': theme,
+                        'question_number': i
+                    })
+                
+                request.session.modified = True
+
+                user.generate_count += len(valid_questions)
+                user.save()
+                # 最初の問題にリダイレクト
+                return redirect('question', keyword=theme, question_number=1)
+
+            except Exception as e:
+                return JsonResponse({"error": str(e)}, status=500)
+        return JsonResponse({"error": "Invalid request"}, status=400)
 
 @csrf_exempt
 def answer_question(request, keyword, question_number):
