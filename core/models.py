@@ -40,6 +40,18 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
     
+class QuestionSet(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="question_sets")
+    name = models.CharField(max_length=255)
+    description = models.TextField(null=True, blank=True)
+    questions = models.ManyToManyField(Question, related_name="question_sets")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+    
+
+    
 class Subscription(models.Model):
     PLAN_CHOICES = [
         ('basic', 'ベーシックプラン'),

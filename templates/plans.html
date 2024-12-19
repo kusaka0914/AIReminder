@@ -66,6 +66,7 @@
                     <p><span class="price">¥</span><span class="price-text">500</span></p>
                     <p>無制限に生成可能</p>
                     <p>問題集を無制限に作成可能</p>
+                    <p>写真、PDFから問題を生成可能</p>
                     <form action="{% url 'create_checkout_session' 'premium' %}" method="POST">
                         {% csrf_token %}
                         <button type="submit" class="plans-btn">使い放題プランに登録</button>

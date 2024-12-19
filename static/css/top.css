@@ -214,3 +214,22 @@ body {
     border: none;
     outline: none;
 }
+
+
+
+::file-selector-button {
+    font-size: 0.92vw;
+    color: white;
+    background-color: #1C4E87;
+    border-radius: 0.87vw;
+    padding: 0.52vw;
+    width: 7.93vw;
+    height: 2.64vw;
+    border: none;
+    outline: none;
+}
+
+::file-selector-button:hover {
+    cursor: pointer;
+    opacity: 0.6;
+}

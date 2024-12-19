@@ -32,6 +32,7 @@
                         <option value="advanced">普通</option>
                         <option value="master">難しい</option>
                     </select>
+                    <input type="file" name="file" accept="image/*,application/pdf" class="file-input">
                     <button type="submit" class="generate-button">
                         
                     </button>
@@ -62,6 +63,9 @@
     const isPremium = "{{ is_premium }}";
     const sendingImg = document.querySelector('.sending-img');
     const generateButton = document.querySelector('.generate-button');
+    const fileInput = document.querySelector('.file-input');
+    const difficultySelect = document.querySelector('.difficulty-select');
+    
     sendingImg.addEventListener('click', function() {
         generateButton.click();
     });
@@ -79,6 +83,11 @@
         document.querySelector('.sending-img').style.display = 'none';
         document.querySelector('.top-content h2').textContent = "1日に生成できる問題数の上限に達しました。";
         document.querySelector('.upgrade-button-link').style.display = 'block';
+        difficultySelect.style.display = 'none';
+    }
+
+    if (isPremium == "False") {
+        fileInput.style.display = 'none';
     }
 
     // サーバーから履歴を取得して表示する
