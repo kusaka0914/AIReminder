@@ -140,6 +140,7 @@ def question_view(request, keyword, question_number):
         if line.strip().startswith('(') and ')' in line:
             option_letter = line[1:line.index(')')].strip()
             option_text = line[line.index(')')+1:].strip()
+            option_letter = option_letter.replace('(', '').replace(')', '')
             options.append({
                 'letter': option_letter,
                 'text': option_text
@@ -308,7 +309,9 @@ def generate_question(request):
                 # 難易度に応じたレベル設定
                 level_map = {
                     'basic': '初級レベル',
+                    'intermediate': '中級レベル',
                     'advanced': '上級レベル',
+                    'super_advanced': '超上級レベル',
                     'master': '最上級レベル'
                 }
                 level = level_map.get(difficulty, '上級')
@@ -335,12 +338,16 @@ def generate_question(request):
 
                 while attempt < max_attempts and len(valid_questions) < 10:
                     attempt += 1
-                    prompt = f"{theme}に関する、実用的な4択問題を10個作成してください。作成する問題の難易度は{level}です。しっかりとこのレベルの問題を作成してください。正解はまだ表示しないでください。"
+                    prompt = f"""{theme}に関する、実用的な4択問題を10個作成してください。
+                    作成する問題の難易度は{level}です。
+                    しっかりとこのレベルの問題を作成してください。
+                    選択肢は(A)~(D)の4つです。
+                    正解はまだ表示しないでください。"""
                     print(prompt)
                     response = openai.ChatCompletion.create(
                         model="gpt-4o",
                         messages=[
-                            {"role": "system", "content": "問題の選択肢は (A)選択肢の内容 (B)選択肢の内容 (C)選択肢の内容 (D)選択肢の内容 という形で出力してください。問題はきちんと1~10の順番で出力してください。"},
+                            {"role": "system", "content": "問題はきちんと1~10の順番で出力してください。"},
                             {"role": "user", "content": prompt}
                         ]
                     )

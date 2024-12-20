@@ -1,0 +1,23 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/addmodal.css' %}">
+<div id="addModal" class="modal">
+    <div class="modal-content">
+        <h2>追加する問題集を選択</h2>
+        <input type="text" placeholder="問題集検索" class="search-input">
+        <div class="question-collection">
+            <!-- 繰り返し要素の例 -->
+            <div class="collection-item">
+                <input type="radio" name="collection" id="collection1">
+                <label for="collection1">
+                    <img src="{% static 'images/book_icon.png' %}" alt="問題集アイコン">
+                    <p>苦手な問題集</p>
+                </label>
+            </div>
+            <!-- 他のアイテムも同様に追加 -->
+        </div>
+        <div class="button-container">
+            <button class="cancel-button">キャンセル</button>
+            <button class="add-button">追加</button>
+        </div>
+    </div>
+</div>
